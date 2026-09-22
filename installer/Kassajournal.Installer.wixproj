@@ -4,6 +4,8 @@
     <OutputType>Package</OutputType>
     <OutputName>Kassajournal-IVB-Setup</OutputName>
     <Platform>x64</Platform>
+    <!-- Deutsche Standard-Dialogtexte (Weiter/Zurück/Abbrechen usw.) aus WixToolset.UI.wixext verwenden. -->
+    <Cultures>de-DE</Cultures>
     <!-- Wird vom GitHub-Actions-Workflow überschrieben (z. B. bei Tag v1.2.3 -> 1.2.3.0); lokal Default. -->
     <ProductVersion Condition="'$(ProductVersion)' == ''">0.1.0</ProductVersion>
     <!-- Ordner mit dem "dotnet publish"-Ergebnis, das verpackt werden soll. -->

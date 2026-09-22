@@ -62,6 +62,7 @@
     </Feature>
 
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Kassajournal &amp; IVB jetzt starten" />
     <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]Kassajournal.App.exe" />

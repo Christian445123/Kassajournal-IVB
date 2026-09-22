@@ -53,6 +53,8 @@ public partial class App : Application
         MainWindow = mainWindow;
         mainWindow.Show();
 
-        _ = mainViewModel.InitializeAsync();
+        // Initialisierung (inkl. Ersteinrichtungs-Dialog, falls noch keine DB konfiguriert ist)
+        // passiert in MainWindow.Loaded, damit das Fenster schon sichtbar ist, bevor ggf. der
+        // Einstellungen-Dialog aufgeht.
     }
 }

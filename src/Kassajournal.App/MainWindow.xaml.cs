@@ -13,9 +13,34 @@ public partial class MainWindow : Window
         InitializeComponent();
         _viewModel = viewModel;
         DataContext = _viewModel;
+        Loaded += MainWindow_Loaded;
     }
 
-    private void Einstellungen_Click(object sender, RoutedEventArgs e)
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.InitializeAsync();
+
+        // Erster Start (oder noch nicht eingerichtet): lokale, verschlüsselte Datenbank existiert
+        // bereits automatisch - jetzt fehlen nur noch die Zugangsdaten zu den Zentraldatenbanken.
+        if (!_viewModel.IstKassaDbKonfiguriert && !_viewModel.IstIvbDbKonfiguriert)
+        {
+            MessageBox.Show(
+                this,
+                "Willkommen bei Kassajournal & IVB!\n\n" +
+                "Die lokale, verschlüsselte Datenbank auf diesem PC wurde bereits automatisch angelegt.\n" +
+                "Bitte trage jetzt noch einmalig die Zugangsdaten zu den beiden Zentraldatenbanken " +
+                "(Kassajournal und IVB) ein, damit deine Daten zusätzlich dort gesichert werden.",
+                "Ersteinrichtung",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            OpenSettings();
+        }
+    }
+
+    private void Einstellungen_Click(object sender, RoutedEventArgs e) => OpenSettings();
+
+    private void OpenSettings()
     {
         var settingsWindow = new SettingsWindow { Owner = this };
         settingsWindow.ShowDialog();
