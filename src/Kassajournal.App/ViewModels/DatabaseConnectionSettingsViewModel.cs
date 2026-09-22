@@ -108,8 +108,21 @@ public partial class DatabaseConnectionSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Speichern()
+    private void Speichern() => Save();
+
+    /// <summary>
+    /// Speichert die aktuell eingegebenen Zugangsdaten. Öffentlich aufrufbar, damit z. B. beim
+    /// Schließen des Einstellungsfensters automatisch gespeichert werden kann, auch wenn niemand
+    /// extra auf den "Speichern"-Button geklickt hat. Leere Felder (nichts eingetragen) werden
+    /// dabei nicht als "konfiguriert" markiert.
+    /// </summary>
+    public void Save()
     {
+        if (string.IsNullOrWhiteSpace(Host) && string.IsNullOrWhiteSpace(Username) && string.IsNullOrWhiteSpace(Password))
+        {
+            return; // Nichts eingegeben - nichts zu speichern (verhindert versehentliches Leeren beim Schließen).
+        }
+
         _store.Save(BuildSettings());
         IsConfigured = true;
         TestStatusMessage = "Zugangsdaten gespeichert.";

@@ -28,4 +28,11 @@ public partial class SettingsViewModel : ObservableObject
         Kassajournal.Load();
         Ivb.Load();
     }
+
+    /// <summary>Sichert beide Zugangsdaten-Blöcke - wird beim Schließen des Fensters automatisch aufgerufen.</summary>
+    public void SaveAll()
+    {
+        Kassajournal.Save();
+        Ivb.Save();
+    }
 }
