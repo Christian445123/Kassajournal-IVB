@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:Kassajournal.App.Views"
         Title="Einstellungen – Kassajournal &amp; IVB"
-        Height="820" Width="620" MinHeight="700" MinWidth="560"
+        Icon="/Assets/AppIcon.ico"
+        Height="900" Width="620" MinHeight="700" MinWidth="560"
         Background="{StaticResource BrushBackground}"
         FontFamily="{StaticResource AppFont}"
         WindowStartupLocation="CenterOwner">
@@ -11,14 +12,42 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="28">
         <StackPanel>
             <TextBlock Text="Datenbank-Zugangsdaten" Style="{StaticResource TitleText}" Margin="0,0,0,4" />
-            <TextBlock Text="Kassajournal und IVB verwenden zwei komplett getrennte Datenbanken. Beide Verbindungen laufen verschlüsselt (TLS/SSL); die Zugangsdaten werden nur lokal, verschlüsselt an dieses Benutzerkonto gebunden, gespeichert."
+            <TextBlock Text="Kassajournal und IVB verwenden zwei komplett getrennte Datenbanken. Beide Verbindungen laufen verschlüsselt (TLS/SSL); die Zugangsdaten werden nur lokal, verschlüsselt an dieses Benutzerkonto gebunden, gespeichert - und bleiben bei jedem Programm-Update automatisch erhalten, da sie unabhängig vom Installationsordner liegen."
                        Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" Margin="0,0,0,20" />
 
             <views:DatabaseConnectionSettingsView DataContext="{Binding Kassajournal}" Margin="0,0,0,20" />
-            <views:DatabaseConnectionSettingsView DataContext="{Binding Ivb}" Margin="0,0,0,20" />
+            <views:DatabaseConnectionSettingsView DataContext="{Binding Ivb}" Margin="0,0,0,28" />
+
+            <!-- Programm-Updates -->
+            <TextBlock Text="Programm-Update" Style="{StaticResource TitleText}" Margin="0,0,0,4" />
+            <TextBlock Text="Prüft, ob auf GitHub eine neuere Version von Kassajournal &amp; IVB verfügbar ist."
+                       Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" Margin="0,0,0,14" />
+
+            <Border Style="{StaticResource CardBorder}" DataContext="{Binding UpdateManager}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="{Binding AktuelleVersion, StringFormat=Installierte Version: {0}}" FontSize="14" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Content="Nach Updates suchen" Style="{StaticResource SecondaryButton}"
+                                Command="{Binding NachUpdatesSuchenCommand}" VerticalAlignment="Top" />
+                    </Grid>
+
+                    <Button Content="Jetzt aktualisieren" Style="{StaticResource PrimaryButton}" Margin="0,14,0,0" HorizontalAlignment="Left"
+                            Command="{Binding JetztAktualisierenCommand}"
+                            Visibility="{Binding UpdateVerfuegbar, Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
+            </Border>
 
             <Button Content="Schließen" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right"
-                    Padding="24,10" Click="Schliessen_Click" />
+                    Padding="24,10" Margin="0,20,0,0" Click="Schliessen_Click" />
         </StackPanel>
     </ScrollViewer>
 </Window>

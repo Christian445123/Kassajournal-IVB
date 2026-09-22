@@ -42,7 +42,7 @@ public partial class MainWindow : Window
 
     private void OpenSettings()
     {
-        var settingsWindow = new SettingsWindow { Owner = this };
+        var settingsWindow = new SettingsWindow(_viewModel.UpdateManager) { Owner = this };
         settingsWindow.ShowDialog();
 
         // Nach dem Schließen der Einstellungen den DB-Status-Hinweis aktualisieren (falls neu konfiguriert).

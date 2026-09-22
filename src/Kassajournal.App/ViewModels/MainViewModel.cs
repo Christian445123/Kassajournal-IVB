@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Kassajournal.Core.Models;
 using Kassajournal.Data.Settings;
 using Kassajournal.Data.Sync;
-using Kassajournal.Update;
 
 namespace Kassajournal.App.ViewModels;
 
@@ -15,25 +14,27 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly SyncService _kassaSyncService;
     private readonly IvbSyncService _ivbSyncService;
-    private readonly GitHubUpdateChecker _updateChecker;
 
     public MainViewModel(
         KassaModuleViewModel kassajournal,
         IvbModuleViewModel ivb,
         SyncService kassaSyncService,
         IvbSyncService ivbSyncService,
-        GitHubUpdateChecker updateChecker)
+        UpdateManagerViewModel updateManager)
     {
         Kassajournal = kassajournal;
         Ivb = ivb;
         _kassaSyncService = kassaSyncService;
         _ivbSyncService = ivbSyncService;
-        _updateChecker = updateChecker;
+        UpdateManager = updateManager;
     }
 
     public KassaModuleViewModel Kassajournal { get; }
 
     public IvbModuleViewModel Ivb { get; }
+
+    /// <summary>Wird auch vom Einstellungen-Dialog verwendet, damit beide Stellen denselben Update-Stand zeigen.</summary>
+    public UpdateManagerViewModel UpdateManager { get; }
 
     [ObservableProperty]
     private AppModule _aktivesModul = AppModule.Kassajournal;
@@ -54,15 +55,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _istIvbDbKonfiguriert;
 
-    [ObservableProperty]
-    private string _updateHinweis = string.Empty;
-
-    [ObservableProperty]
-    private bool _updateVerfuegbar;
-
-    private UpdateInfo? _pendingUpdate;
-
-    public string AppVersion => System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
+    public string AppVersion => UpdateManager.AktuelleVersion;
 
     /// <summary>Wird beim App-Start aufgerufen: öffnet in beiden Bereichen den heutigen Tag, prüft Konfiguration und Updates im Hintergrund.</summary>
     public async Task InitializeAsync()
@@ -74,7 +67,7 @@ public partial class MainViewModel : ObservableObject
 
         _ = _kassaSyncService.SyncNowAsync();
         _ = _ivbSyncService.SyncNowAsync();
-        _ = PruefeUpdateAsync();
+        _ = UpdateManager.PruefeBeimStartAsync();
     }
 
     public void RefreshDbStatus()
@@ -88,29 +81,4 @@ public partial class MainViewModel : ObservableObject
 
     [RelayCommand]
     private void ZeigeIvb() => AktivesModul = AppModule.Ivb;
-
-    private async Task PruefeUpdateAsync()
-    {
-        var currentVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
-        var info = await _updateChecker.CheckForUpdateAsync(currentVersion);
-        if (info.IsUpdateAvailable)
-        {
-            _pendingUpdate = info;
-            UpdateVerfuegbar = true;
-            UpdateHinweis = $"Neue Version {info.LatestVersion} verfügbar.";
-        }
-    }
-
-    [RelayCommand]
-    private async Task UpdateInstallierenAsync()
-    {
-        if (_pendingUpdate?.DownloadUrl is null)
-        {
-            return;
-        }
-
-        UpdateHinweis = "Update wird heruntergeladen …";
-        var path = await UpdateInstaller.DownloadAsync(_pendingUpdate.DownloadUrl, progress: null);
-        UpdateInstaller.LaunchInstallerAndExit(path);
-    }
 }

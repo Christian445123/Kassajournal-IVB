@@ -5,11 +5,11 @@ namespace Kassajournal.App.Views;
 
 public partial class SettingsWindow : Window
 {
-    public SettingsWindow()
+    public SettingsWindow(UpdateManagerViewModel updateManager)
     {
         InitializeComponent();
 
-        var viewModel = new SettingsViewModel();
+        var viewModel = new SettingsViewModel(updateManager);
         viewModel.Load();
         DataContext = viewModel;
     }

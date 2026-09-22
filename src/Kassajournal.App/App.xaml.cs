@@ -48,6 +48,7 @@ public partial class App : Application
             var ivbSyncService = new IvbSyncService(ivbRepository, ivbGateway);
 
             var updateChecker = new GitHubUpdateChecker(AppConfig.GitHubOwner, AppConfig.GitHubRepository);
+            var updateManager = new UpdateManagerViewModel(updateChecker);
 
             DayEntryViewModel DayFactory() => new(kassaRepository, kassaSyncService);
             IvbDayRowViewModel IvbRowFactory() => new(ivbRepository, ivbSyncService);
@@ -59,7 +60,7 @@ public partial class App : Application
             var ivbAuswertung = new IvbAuswertungViewModel(ivbRepository);
             var ivbModule = new IvbModuleViewModel(ivbRepository, IvbRowFactory, ivbAuswertung);
 
-            var mainViewModel = new MainViewModel(kassaModule, ivbModule, kassaSyncService, ivbSyncService, updateChecker);
+            var mainViewModel = new MainViewModel(kassaModule, ivbModule, kassaSyncService, ivbSyncService, updateManager);
 
             var mainWindow = new MainWindow(mainViewModel);
             MainWindow = mainWindow;

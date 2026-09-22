@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:Kassajournal.App.Views"
         Title="Kassajournal &amp; IVB"
+        Icon="/Assets/AppIcon.ico"
         Height="860" Width="1360" MinHeight="680" MinWidth="1080"
         Background="{StaticResource BrushBackground}"
         FontFamily="{StaticResource AppFont}"
@@ -60,11 +61,11 @@
                 </StackPanel>
 
                 <Border Grid.Column="3" Background="#1E4165" CornerRadius="8" Padding="12,8" Margin="0,0,12,0"
-                        Visibility="{Binding UpdateVerfuegbar, Converter={StaticResource BoolToVisibility}}">
+                        Visibility="{Binding UpdateManager.UpdateVerfuegbar, Converter={StaticResource BoolToVisibility}}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding UpdateHinweis}" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <TextBlock Text="{Binding UpdateManager.StatusText}" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="0,0,10,0" />
                         <Button Content="Aktualisieren" Style="{StaticResource SecondaryButton}" Foreground="White" Padding="10,4"
-                                Command="{Binding UpdateInstallierenCommand}" />
+                                Command="{Binding UpdateManager.JetztAktualisierenCommand}" />
                     </StackPanel>
                 </Border>
 

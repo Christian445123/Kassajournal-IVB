@@ -64,6 +64,10 @@
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
+    <!-- Icon für Systemsteuerung / "Apps & Features" -->
+    <Icon Id="AppIcon.ico" SourceFile="..\src\Kassajournal.App\Assets\AppIcon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+
     <!--
       Bewusst KEINE "Jetzt starten"-Checkbox am Ende des Setups: das würde eine zusätzliche
       WixShellExec-Custom-Action (aus WixToolset.Util.wixext) benötigen. Die Desktop- und
