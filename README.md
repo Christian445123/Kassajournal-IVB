@@ -171,10 +171,10 @@ git push origin v1.1.0
 
 ```powershell
 dotnet publish src/Kassajournal.App/Kassajournal.App.csproj -c Release -r win-x64 --self-contained true -o publish/win-x64
-dotnet build installer/Kassajournal.Installer.wixproj -p:ProductVersion=1.1.0 -o installer/bin
+dotnet build installer/Kassajournal.Installer.wixproj -c Release -p:ProductVersion=1.1.0
 ```
 
-Das fertige Setup liegt danach unter `installer/bin/Kassajournal-IVB-Setup.msi`.
+Das fertige Setup liegt danach unter `installer/bin/x64/Release/Kassajournal-IVB-Setup.msi`.
 
 ## Projektstruktur
 
