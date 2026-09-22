@@ -33,6 +33,8 @@ public partial class IvbDayRowViewModel(IIvbRepository repository, IvbSyncServic
     [ObservableProperty]
     private bool _isFeiertag;
 
+    public bool IsEditable => !IsFeiertag;
+
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
@@ -109,5 +111,9 @@ public partial class IvbDayRowViewModel(IIvbRepository repository, IvbSyncServic
         };
     }
 
-    partial void OnIsFeiertagChanged(bool value) => _ = CommitAsync();
+    partial void OnIsFeiertagChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsEditable));
+        _ = CommitAsync();
+    }
 }

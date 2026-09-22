@@ -19,11 +19,19 @@ public partial class IvbWeekGroupViewModel(DateOnly weekStart) : ObservableObjec
 /// Ein Monats-Reiter im IVB-Journal: Wochenraster Mo-Sa mit "täglicher Umsatz" je Tag,
 /// genau wie "IVB Vorlage.xlsx". Zeigt immer den kompletten Kalendermonat (nicht nur bereits befüllte Tage).
 /// </summary>
-public partial class IvbMonthViewModel(IIvbRepository repository, Func<IvbDayRowViewModel> rowFactory) : ObservableObject
+public partial class IvbMonthViewModel(IIvbRepository repository, Func<IvbDayRowViewModel> rowFactory, int month) : ObservableObject
 {
+    private static readonly string[] MonatsNamen =
+    [
+        "Jänner", "Februar", "März", "April", "Mai", "Juni",
+        "Juli", "August", "September", "Oktober", "November", "Dezember",
+    ];
+
     public int Year { get; private set; }
 
-    public int Month { get; private set; }
+    public int Month { get; } = month;
+
+    public string TabHeader { get; } = MonatsNamen[month - 1];
 
     public string MonatsName { get; private set; } = string.Empty;
 
@@ -48,16 +56,15 @@ public partial class IvbMonthViewModel(IIvbRepository repository, Func<IvbDayRow
         }
     }
 
-    public async Task EnsureLoadedAsync(int year, int month)
+    public async Task EnsureLoadedAsync(int year)
     {
-        if (IsLoaded && Year == year && Month == month)
+        if (IsLoaded && Year == year)
         {
             return;
         }
 
         Year = year;
-        Month = month;
-        MonatsName = new DateOnly(year, month, 1).ToString("MMMM yyyy", CultureInfo.GetCultureInfo("de-AT"));
+        MonatsName = new DateOnly(year, Month, 1).ToString("MMMM yyyy", CultureInfo.GetCultureInfo("de-AT"));
 
         await ReloadAsync();
         IsLoaded = true;

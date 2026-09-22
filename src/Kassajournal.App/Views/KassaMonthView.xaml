@@ -1,0 +1,82 @@
+<UserControl x:Class="Kassajournal.App.Views.KassaMonthView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Kassajournal.App.ViewModels"
+             xmlns:views="clr-namespace:Kassajournal.App.Views">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Kopfzahlen des Monats -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Anfangssaldo" Style="{StaticResource SectionTitleText}" />
+                    <Grid>
+                        <TextBlock Text="{Binding Anfangssaldo, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="SemiBold"
+                                   Cursor="Hand" ToolTip="Klicken zum Bearbeiten"
+                                   MouseLeftButtonUp="Anfangssaldo_Click"
+                                   Visibility="{Binding IsEditingAnfangssaldo, Converter={StaticResource InverseBoolToVisibility}}" />
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsEditingAnfangssaldo, Converter={StaticResource BoolToVisibility}}">
+                            <TextBox Width="90" Style="{StaticResource AmountTextBox}" FontSize="14" Padding="6,5" Text="{Binding AnfangssaldoText}" />
+                            <Button Content="✓" Width="32" Margin="6,0,0,0" Style="{StaticResource PrimaryButton}" Command="{Binding AnfangssaldoSpeichernCommand}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Summe Soll" Style="{StaticResource SectionTitleText}" />
+                    <TextBlock Text="{Binding SummeSoll, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource BrushSoll}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Summe Haben" Style="{StaticResource SectionTitleText}" />
+                    <TextBlock Text="{Binding SummeHaben, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource BrushHaben}" />
+                </StackPanel>
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Saldo" Style="{StaticResource SectionTitleText}" />
+                    <TextBlock Text="{Binding Saldo, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="Bold" />
+                </StackPanel>
+
+                <Button Grid.Column="4" Content="+ Neuer Tag" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding NeuerTagCommand}" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Tagesliste, neuester Tag ganz oben -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <ItemsControl ItemsSource="{Binding Tage}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:DayEntryViewModel}">
+                            <views:DayEntryView />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="Noch keine Buchungen in diesem Monat." Foreground="{StaticResource BrushTextSecondary}"
+                           Margin="4,10,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Tage.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

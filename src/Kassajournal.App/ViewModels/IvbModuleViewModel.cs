@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Kassajournal.Core.Services;
 
 namespace Kassajournal.App.ViewModels;
@@ -10,7 +11,7 @@ public partial class IvbModuleViewModel : ObservableObject
     {
         Auswertung = auswertung;
         Monate = Enumerable.Range(1, 12)
-            .Select(_ => new IvbMonthViewModel(repository, rowFactory))
+            .Select(month => new IvbMonthViewModel(repository, rowFactory, month))
             .ToList();
 
         Auswertung.MonatAusgewaehlt += monat => _ = SelectMonthAsync(monat);
@@ -32,7 +33,7 @@ public partial class IvbModuleViewModel : ObservableObject
         var today = DateTime.Today;
         Jahr = today.Year;
         SelectedTabIndex = today.Month - 1;
-        await Monate[today.Month - 1].EnsureLoadedAsync(Jahr, today.Month);
+        await Monate[today.Month - 1].EnsureLoadedAsync(Jahr);
     }
 
     public async Task OnTabSelectedAsync(int index)
@@ -40,7 +41,7 @@ public partial class IvbModuleViewModel : ObservableObject
         SelectedTabIndex = index;
         if (index >= 0 && index < 12)
         {
-            await Monate[index].EnsureLoadedAsync(Jahr, index + 1);
+            await Monate[index].EnsureLoadedAsync(Jahr);
         }
         else if (index == 12)
         {
@@ -51,6 +52,20 @@ public partial class IvbModuleViewModel : ObservableObject
     private async Task SelectMonthAsync(int monat)
     {
         SelectedTabIndex = monat - 1;
-        await Monate[monat - 1].EnsureLoadedAsync(Jahr, monat);
+        await Monate[monat - 1].EnsureLoadedAsync(Jahr);
+    }
+
+    [RelayCommand]
+    private async Task VorJahrAsync()
+    {
+        Jahr--;
+        await OnTabSelectedAsync(SelectedTabIndex);
+    }
+
+    [RelayCommand]
+    private async Task NaechstesJahrAsync()
+    {
+        Jahr++;
+        await OnTabSelectedAsync(SelectedTabIndex);
     }
 }

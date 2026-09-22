@@ -1,38 +1,58 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Kassajournal.Core.Services;
+using Kassajournal.Core.Models;
 using Kassajournal.Data.Settings;
 using Kassajournal.Data.Sync;
 using Kassajournal.Update;
 
 namespace Kassajournal.App.ViewModels;
 
-/// <summary>Haupt-ViewModel: steuert Navigation und sorgt dafür, dass beim Start immer der heutige Tag aufgeht.</summary>
+/// <summary>
+/// Haupt-ViewModel: EIN Programm ("Kassajournal &amp; IVB") mit Umschalter zwischen den zwei
+/// fachlichen Bereichen. Sorgt dafür, dass beim Start in beiden Bereichen der heutige Tag bereitsteht.
+/// </summary>
 public partial class MainViewModel : ObservableObject
 {
-    private readonly SyncService _syncService;
+    private readonly SyncService _kassaSyncService;
+    private readonly IvbSyncService _ivbSyncService;
     private readonly GitHubUpdateChecker _updateChecker;
 
-    public MainViewModel(DayEntryViewModel dayEntry, MonthOverviewViewModel monthOverview, SyncService syncService, GitHubUpdateChecker updateChecker)
+    public MainViewModel(
+        KassaModuleViewModel kassajournal,
+        IvbModuleViewModel ivb,
+        SyncService kassaSyncService,
+        IvbSyncService ivbSyncService,
+        GitHubUpdateChecker updateChecker)
     {
-        DayEntry = dayEntry;
-        MonthOverview = monthOverview;
-        _syncService = syncService;
+        Kassajournal = kassajournal;
+        Ivb = ivb;
+        _kassaSyncService = kassaSyncService;
+        _ivbSyncService = ivbSyncService;
         _updateChecker = updateChecker;
-
-        MonthOverview.TagAusgewaehlt += date => _ = ZeigeTagAsync(date);
-        CurrentView = DayEntry;
     }
 
-    public DayEntryViewModel DayEntry { get; }
+    public KassaModuleViewModel Kassajournal { get; }
 
-    public MonthOverviewViewModel MonthOverview { get; }
-
-    [ObservableProperty]
-    private object _currentView = null!;
+    public IvbModuleViewModel Ivb { get; }
 
     [ObservableProperty]
-    private bool _istDbKonfiguriert;
+    private AppModule _aktivesModul = AppModule.Kassajournal;
+
+    public bool IstKassajournalAktiv => AktivesModul == AppModule.Kassajournal;
+
+    public bool IstIvbAktiv => AktivesModul == AppModule.Ivb;
+
+    partial void OnAktivesModulChanged(AppModule value)
+    {
+        OnPropertyChanged(nameof(IstKassajournalAktiv));
+        OnPropertyChanged(nameof(IstIvbAktiv));
+    }
+
+    [ObservableProperty]
+    private bool _istKassaDbKonfiguriert;
+
+    [ObservableProperty]
+    private bool _istIvbDbKonfiguriert;
 
     [ObservableProperty]
     private string _updateHinweis = string.Empty;
@@ -44,41 +64,30 @@ public partial class MainViewModel : ObservableObject
 
     public string AppVersion => System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
 
-    /// <summary>Wird beim App-Start aufgerufen: öffnet immer den heutigen Tag, prüft Konfiguration und Updates im Hintergrund.</summary>
+    /// <summary>Wird beim App-Start aufgerufen: öffnet in beiden Bereichen den heutigen Tag, prüft Konfiguration und Updates im Hintergrund.</summary>
     public async Task InitializeAsync()
     {
-        IstDbKonfiguriert = new DatabaseSettingsStore().Load().IsConfigured;
+        RefreshDbStatus();
 
-        await ZeigeTagAsync(DateOnly.FromDateTime(DateTime.Today));
+        await Kassajournal.InitializeAsync();
+        await Ivb.InitializeAsync();
 
-        _ = _syncService.SyncNowAsync(); // im Hintergrund, blockiert den Start nicht
+        _ = _kassaSyncService.SyncNowAsync();
+        _ = _ivbSyncService.SyncNowAsync();
         _ = PruefeUpdateAsync();
     }
 
-    private async Task ZeigeTagAsync(DateOnly date)
+    public void RefreshDbStatus()
     {
-        await DayEntry.LoadAsync(date);
-        CurrentView = DayEntry;
+        IstKassaDbKonfiguriert = new DatabaseSettingsStore(AppModule.Kassajournal).Load().IsConfigured;
+        IstIvbDbKonfiguriert = new DatabaseSettingsStore(AppModule.Ivb).Load().IsConfigured;
     }
 
     [RelayCommand]
-    private Task ZeigeHeute() => ZeigeTagAsync(DateOnly.FromDateTime(DateTime.Today));
+    private void ZeigeKassajournal() => AktivesModul = AppModule.Kassajournal;
 
     [RelayCommand]
-    private Task VorherigerTag() => ZeigeTagAsync(DayEntry.Date.AddDays(-1));
-
-    [RelayCommand]
-    private Task NaechsterTag() => ZeigeTagAsync(DayEntry.Date.AddDays(1));
-
-    [RelayCommand]
-    private async Task ZeigeMonatsuebersicht()
-    {
-        await MonthOverview.LoadAsync(DayEntry.Date.Year, DayEntry.Date.Month);
-        CurrentView = MonthOverview;
-    }
-
-    [RelayCommand]
-    private void ZeigeTagesansicht() => CurrentView = DayEntry;
+    private void ZeigeIvb() => AktivesModul = AppModule.Ivb;
 
     private async Task PruefeUpdateAsync()
     {
@@ -104,6 +113,4 @@ public partial class MainViewModel : ObservableObject
         var path = await UpdateInstaller.DownloadAsync(_pendingUpdate.DownloadUrl, progress: null);
         UpdateInstaller.LaunchInstallerAndExit(path);
     }
-
-    public async Task NeuLadenAsync() => await ZeigeTagAsync(DayEntry.Date);
 }

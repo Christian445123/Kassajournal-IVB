@@ -10,6 +10,7 @@
 
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" />
             <conv:BoolToVisibilityConverter x:Key="InverseBoolToVisibility" Invert="True" />
+            <conv:NegativeToBoolConverter x:Key="NegativeToBool" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

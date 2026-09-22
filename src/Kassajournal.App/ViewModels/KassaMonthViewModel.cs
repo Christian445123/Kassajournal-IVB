@@ -12,11 +12,21 @@ namespace Kassajournal.App.ViewModels;
 /// Eintippen, sortiert mit dem neuesten Tag ganz oben. Wird erst beim ersten Anzeigen geladen
 /// (Lazy Loading), damit der Start der App nicht 12 Monate auf einmal laden muss.
 /// </summary>
-public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEntryViewModel> dayFactory) : ObservableObject
+public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEntryViewModel> dayFactory, int month) : ObservableObject
 {
+    private static readonly string[] MonatsNamen =
+    [
+        "Jänner", "Februar", "März", "April", "Mai", "Juni",
+        "Juli", "August", "September", "Oktober", "November", "Dezember",
+    ];
+
     public int Year { get; private set; }
 
-    public int Month { get; private set; }
+    /// <summary>Fix (1-12), steht von Anfang an fest, damit der Reiter-Titel sofort ohne Laden angezeigt werden kann.</summary>
+    public int Month { get; } = month;
+
+    /// <summary>Reiter-Titel, z. B. "Jänner" (entspricht dem Blattnamen in der Excel-Vorlage).</summary>
+    public string TabHeader { get; } = MonatsNamen[month - 1];
 
     public string MonatsName { get; private set; } = string.Empty;
 
@@ -40,16 +50,15 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
     [ObservableProperty]
     private decimal _saldo;
 
-    public async Task EnsureLoadedAsync(int year, int month)
+    public async Task EnsureLoadedAsync(int year)
     {
-        if (IsLoaded && Year == year && Month == month)
+        if (IsLoaded && Year == year)
         {
             return;
         }
 
         Year = year;
-        Month = month;
-        MonatsName = new DateOnly(year, month, 1).ToString("MMMM yyyy", CultureInfo.GetCultureInfo("de-AT"));
+        MonatsName = new DateOnly(year, Month, 1).ToString("MMMM yyyy", CultureInfo.GetCultureInfo("de-AT"));
 
         await ReloadAsync();
         IsLoaded = true;
@@ -117,15 +126,30 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
         Saldo = Anfangssaldo + runningSoll - runningHaben;
     }
 
+    [ObservableProperty]
+    private bool _isEditingAnfangssaldo;
+
+    [ObservableProperty]
+    private string _anfangssaldoText = "820,00";
+
     [RelayCommand]
-    private async Task AnfangssaldoAendernAsync(string neuerWertText)
+    private void AnfangssaldoBearbeiten()
     {
-        var normalized = neuerWertText.Replace(".", "").Replace(",", ".").Trim();
+        AnfangssaldoText = Anfangssaldo.ToString("N2");
+        IsEditingAnfangssaldo = true;
+    }
+
+    [RelayCommand]
+    private async Task AnfangssaldoSpeichernAsync()
+    {
+        var normalized = AnfangssaldoText.Replace(".", "").Replace(",", ".").Trim();
         if (decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed) && parsed >= 0)
         {
             await repository.SaveMonthSettingsAsync(new MonthSettings { Year = Year, Month = Month, Anfangssaldo = parsed });
             await ReloadAsync();
         }
+
+        IsEditingAnfangssaldo = false;
     }
 
     /// <summary>Fügt den nächsten noch fehlenden Tag (nach dem bisher jüngsten) am Anfang der Liste hinzu.</summary>
