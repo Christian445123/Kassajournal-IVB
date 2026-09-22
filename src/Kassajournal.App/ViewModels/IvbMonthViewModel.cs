@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Kassajournal.Core.Models;
 using Kassajournal.Core.Services;
 
 namespace Kassajournal.App.ViewModels;
@@ -96,6 +97,14 @@ public partial class IvbMonthViewModel(IIvbRepository repository, Func<IvbDayRow
                 {
                     var row = rowFactory();
                     entriesByDate.TryGetValue(date, out var existing);
+
+                    if (existing is null && AustrianHolidays.IsHoliday(date))
+                    {
+                        // Automatisch als Feiertag erkannt und sofort gespeichert - ohne Zutun des Benutzers.
+                        existing = new IvbEntry { Date = date, Amount = 0m, IsFeiertag = true };
+                        await repository.UpsertEntryAsync(existing);
+                    }
+
                     row.Populate(date, existing);
                     row.EntrySaved += OnEntrySaved;
                     groupVm.Tage.Add(row);

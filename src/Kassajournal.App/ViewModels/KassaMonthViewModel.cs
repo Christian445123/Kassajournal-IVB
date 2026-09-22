@@ -85,6 +85,10 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
 
             dates = dates.OrderByDescending(d => d).ToList(); // neuester Tag ganz oben
 
+            // Tage, für die noch keine Buchung existiert (z. B. der neu angelegte heutige Tag) -
+            // dafür wird automatisch geprüft, ob es ein österreichischer Feiertag ist.
+            var bereitsVorhandeneDaten = monthEntries.Select(e => e.Date).ToHashSet();
+
             foreach (var existing in Tage)
             {
                 existing.EntrySaved -= OnAnyEntrySaved;
@@ -98,6 +102,12 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
                 day.PopulateFromMonthData(date, monthEntries, monthSettings.Anfangssaldo);
                 day.EntrySaved += OnAnyEntrySaved;
                 Tage.Add(day);
+
+                if (!bereitsVorhandeneDaten.Contains(date) && AustrianHolidays.IsHoliday(date))
+                {
+                    // Automatisch erkannt und sofort gespeichert - ohne Zutun des Benutzers.
+                    await day.ToggleFeiertagAsync(true);
+                }
             }
 
             RecalculateSummary();
@@ -174,6 +184,12 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
         day.PopulateFromMonthData(naechsterTag, monthEntries, Anfangssaldo);
         day.EntrySaved += OnAnyEntrySaved;
         Tage.Insert(0, day);
+
+        if (AustrianHolidays.IsHoliday(naechsterTag))
+        {
+            await day.ToggleFeiertagAsync(true);
+        }
+
         RecalculateSummary();
     }
 }

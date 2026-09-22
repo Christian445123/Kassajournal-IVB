@@ -64,8 +64,12 @@
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
-    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Kassajournal &amp; IVB jetzt starten" />
-    <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]Kassajournal.App.exe" />
+    <!--
+      Bewusst KEINE "Jetzt starten"-Checkbox am Ende des Setups: das würde eine zusätzliche
+      WixShellExec-Custom-Action (aus WixToolset.Util.wixext) benötigen. Die Desktop- und
+      Startmenü-Verknüpfungen (siehe oben) funktionieren zuverlässig und sind der vorgesehene Weg,
+      die App nach der Installation zu starten.
+    -->
 
   </Package>
 </Wix>
