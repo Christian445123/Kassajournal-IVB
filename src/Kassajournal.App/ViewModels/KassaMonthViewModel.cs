@@ -92,6 +92,7 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
             foreach (var existing in Tage)
             {
                 existing.EntrySaved -= OnAnyEntrySaved;
+                existing.DateChanged -= OnAnyDateChanged;
             }
 
             Tage.Clear();
@@ -101,6 +102,7 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
                 var day = dayFactory();
                 day.PopulateFromMonthData(date, monthEntries, monthSettings.Anfangssaldo);
                 day.EntrySaved += OnAnyEntrySaved;
+                day.DateChanged += OnAnyDateChanged;
                 Tage.Add(day);
 
                 if (!bereitsVorhandeneDaten.Contains(date) && AustrianHolidays.IsHoliday(date))
@@ -119,6 +121,9 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
     }
 
     private void OnAnyEntrySaved(object? sender, EventArgs e) => RecalculateSummary();
+
+    /// <summary>Ein Tag hat ein neues Datum bekommen (Korrektur) - kompletter Neu-Ladevorgang, da er den Monat verlassen haben könnte.</summary>
+    private void OnAnyDateChanged(object? sender, EventArgs e) => _ = ReloadAsync();
 
     /// <summary>Berechnet die laufenden Kassenstände neu (chronologisch) und die Kopfzahlen des Monats.</summary>
     private void RecalculateSummary()
@@ -163,33 +168,96 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
         IsEditingAnfangssaldo = false;
     }
 
-    /// <summary>Fügt den nächsten noch fehlenden Tag (nach dem bisher jüngsten) am Anfang der Liste hinzu.</summary>
+    [ObservableProperty]
+    private bool _isAddingDay;
+
+    [ObservableProperty]
+    private DateTime? _neuerTagDatum;
+
+    [ObservableProperty]
+    private string? _neuerTagFehler;
+
+    /// <summary>Öffnet die Datumsauswahl zum Nachtragen eines beliebigen Tages (auch länger zurückliegende).</summary>
     [RelayCommand]
-    private async Task NeuerTagAsync()
+    private void NeuerTagVorbereiten()
     {
         var letzterTag = Tage.Count > 0 ? Tage.Max(d => d.Date) : new DateOnly(Year, Month, 1).AddDays(-1);
-        var naechsterTag = letzterTag.AddDays(1);
-        if (naechsterTag.DayOfWeek == DayOfWeek.Sunday)
+        var vorschlag = letzterTag.AddDays(1);
+        if (vorschlag.DayOfWeek == DayOfWeek.Sunday)
         {
-            naechsterTag = naechsterTag.AddDays(1); // Sonntag überspringen (Mo-Sa, wie IVB)
+            vorschlag = vorschlag.AddDays(1);
         }
 
-        if (naechsterTag.Month != Month || naechsterTag.Year != Year)
+        if (vorschlag.Month != Month || vorschlag.Year != Year)
         {
-            return; // Monat ist voll - nächster Tag gehört in den nächsten Monat
+            vorschlag = new DateOnly(Year, Month, 1);
+        }
+
+        NeuerTagDatum = vorschlag.ToDateTime(TimeOnly.MinValue);
+        NeuerTagFehler = null;
+        IsAddingDay = true;
+    }
+
+    [RelayCommand]
+    private void NeuerTagAbbrechen()
+    {
+        IsAddingDay = false;
+        NeuerTagFehler = null;
+    }
+
+    /// <summary>Legt einen Tag mit dem gewählten Datum an - egal ob in der Vergangenheit oder für heute/später.</summary>
+    [RelayCommand]
+    private async Task NeuerTagBestaetigenAsync()
+    {
+        if (NeuerTagDatum is null)
+        {
+            NeuerTagFehler = "Bitte ein Datum wählen.";
+            return;
+        }
+
+        var datum = DateOnly.FromDateTime(NeuerTagDatum.Value);
+
+        if (datum.DayOfWeek == DayOfWeek.Sunday)
+        {
+            NeuerTagFehler = "Sonntag ist kein gültiger Öffnungstag.";
+            return;
+        }
+
+        if (datum.Year != Year || datum.Month != Month)
+        {
+            NeuerTagFehler = "Bitte ein Datum innerhalb dieses Monats wählen.";
+            return;
+        }
+
+        if (Tage.Any(d => d.Date == datum))
+        {
+            NeuerTagFehler = "Für diesen Tag gibt es schon einen Eintrag.";
+            return;
         }
 
         var monthEntries = await repository.GetEntriesForMonthAsync(Year, Month);
         var day = dayFactory();
-        day.PopulateFromMonthData(naechsterTag, monthEntries, Anfangssaldo);
+        day.PopulateFromMonthData(datum, monthEntries, Anfangssaldo);
         day.EntrySaved += OnAnyEntrySaved;
-        Tage.Insert(0, day);
+        day.DateChanged += OnAnyDateChanged;
 
-        if (AustrianHolidays.IsHoliday(naechsterTag))
+        var einfuegeIndex = Tage.ToList().FindIndex(d => d.Date < datum);
+        if (einfuegeIndex < 0)
+        {
+            Tage.Add(day);
+        }
+        else
+        {
+            Tage.Insert(einfuegeIndex, day);
+        }
+
+        if (AustrianHolidays.IsHoliday(datum))
         {
             await day.ToggleFeiertagAsync(true);
         }
 
         RecalculateSummary();
+        IsAddingDay = false;
+        NeuerTagFehler = null;
     }
 }

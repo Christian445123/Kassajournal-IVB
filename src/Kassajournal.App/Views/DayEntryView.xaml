@@ -24,17 +24,28 @@
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="118" />
+                <ColumnDefinition Width="150" />
                 <ColumnDefinition Width="88" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="130" />
             </Grid.ColumnDefinitions>
 
-            <!-- Datum -->
-            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
-                <TextBlock Text="{Binding Date, StringFormat={}{0:dddd}}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
-            </StackPanel>
+            <!-- Datum: klicken zum Nachbessern (z. B. wenn ein Tag unter dem falschen Datum angelegt wurde) -->
+            <Grid Grid.Column="0" VerticalAlignment="Center">
+                <StackPanel Cursor="Hand" ToolTip="Klicken, um das Datum zu ändern" MouseLeftButtonUp="Datum_Click"
+                            Visibility="{Binding IsEditingDate, Converter={StaticResource InverseBoolToVisibility}}">
+                    <TextBlock Text="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBlock Text="{Binding Date, StringFormat={}{0:dddd}}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                </StackPanel>
+                <StackPanel Visibility="{Binding IsEditingDate, Converter={StaticResource BoolToVisibility}}">
+                    <DatePicker SelectedDate="{Binding DatumBearbeitenWert}" FontSize="12" />
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Button Content="✓ Speichern" FontSize="11" Padding="8,3" Style="{StaticResource PrimaryButton}" Command="{Binding DatumSpeichernCommand}" />
+                        <Button Content="✕" FontSize="11" Padding="8,3" Margin="4,0,0,0" Style="{StaticResource SecondaryButton}" Command="{Binding DatumAbbrechenCommand}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding DatumFehler}" Foreground="{StaticResource BrushDanger}" FontSize="10" TextWrapping="Wrap" MaxWidth="140" Margin="0,2,0,0" />
+                </StackPanel>
+            </Grid>
 
             <!-- Feiertag/geschlossen -->
             <CheckBox Grid.Column="1" Content="Feiertag" VerticalAlignment="Center"

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Kassajournal.Core.Models;
 using Kassajournal.Core.Services;
 using Kassajournal.Data.Sync;
@@ -28,6 +29,9 @@ public partial class DayEntryViewModel : ObservableObject
     /// nutzt das, um den laufenden Kassenstand aller (auch nachfolgender) Tage neu zu berechnen.
     /// </summary>
     public event EventHandler? EntrySaved;
+
+    /// <summary>Wird ausgelöst, nachdem das Datum dieses Tages geändert wurde - der Monats-Reiter lädt daraufhin komplett neu.</summary>
+    public event EventHandler? DateChanged;
 
     public DayEntryViewModel(IKassaRepository repository, SyncService syncService)
     {
@@ -77,6 +81,15 @@ public partial class DayEntryViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isFeiertag;
+
+    [ObservableProperty]
+    private bool _isEditingDate;
+
+    [ObservableProperty]
+    private DateTime? _datumBearbeitenWert;
+
+    [ObservableProperty]
+    private string? _datumFehler;
 
     public string DateDisplay => Date.ToString("dddd, dd. MMMM yyyy", CultureInfo.GetCultureInfo("de-AT"));
 
@@ -246,5 +259,90 @@ public partial class DayEntryViewModel : ObservableObject
             SyncStatus.Fehler => $"Lokal gespeichert. Synchronisation fehlgeschlagen: {result.Fehlermeldung}",
             _ => "Lokal gespeichert. Keine Datenbankverbindung konfiguriert.",
         };
+    }
+
+    [RelayCommand]
+    private void DatumBearbeiten()
+    {
+        DatumBearbeitenWert = Date.ToDateTime(TimeOnly.MinValue);
+        DatumFehler = null;
+        IsEditingDate = true;
+    }
+
+    [RelayCommand]
+    private void DatumAbbrechen()
+    {
+        IsEditingDate = false;
+        DatumFehler = null;
+    }
+
+    [RelayCommand]
+    private async Task DatumSpeichernAsync()
+    {
+        if (DatumBearbeitenWert is null)
+        {
+            DatumFehler = "Bitte ein Datum wählen.";
+            return;
+        }
+
+        var (erfolg, fehler) = await AendereDatumAsync(DateOnly.FromDateTime(DatumBearbeitenWert.Value));
+        if (erfolg)
+        {
+            IsEditingDate = false;
+            DatumFehler = null;
+        }
+        else
+        {
+            DatumFehler = fehler;
+        }
+    }
+
+    /// <summary>
+    /// Ändert das Datum dieses bereits gespeicherten Tages nachträglich - z. B. um einen Tippfehler
+    /// zu korrigieren. Verschiebt alle sechs Zeilen auf das neue Datum (gleiche Ids, nur die
+    /// Datumsspalte ändert sich), damit vorhandene Beträge erhalten bleiben.
+    /// </summary>
+    public async Task<(bool Erfolg, string? Fehler)> AendereDatumAsync(DateOnly neuesDatum)
+    {
+        if (neuesDatum == Date)
+        {
+            return (true, null);
+        }
+
+        if (neuesDatum.DayOfWeek == DayOfWeek.Sunday)
+        {
+            return (false, "Sonntag ist kein gültiger Öffnungstag.");
+        }
+
+        var zielTagEintraege = await _repository.GetEntriesForDayAsync(neuesDatum);
+        if (zielTagEintraege.Count > 0)
+        {
+            return (false, "Für dieses Datum gibt es bereits Buchungen. Bitte ein anderes Datum wählen.");
+        }
+
+        Date = neuesDatum;
+        OnPropertyChanged(nameof(DateDisplay));
+        OnPropertyChanged(nameof(IstHeute));
+
+        foreach (var line in Lines)
+        {
+            var entry = new KassaEntry
+            {
+                Id = line.EntryId,
+                Date = neuesDatum,
+                Category = line.Category,
+                Amount = line.Amount,
+                BelegNr = line.BelegNr,
+                Notiz = line.Notiz,
+                IsFeiertag = IsFeiertag,
+            };
+            await _repository.UpsertEntryAsync(entry);
+        }
+
+        StatusMessage = $"Datum geändert um {DateTime.Now:HH:mm:ss} Uhr.";
+        DateChanged?.Invoke(this, EventArgs.Empty);
+
+        _ = SyncInBackgroundAsync();
+        return (true, null);
     }
 }

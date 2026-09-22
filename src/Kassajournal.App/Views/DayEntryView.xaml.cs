@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Kassajournal.App.ViewModels;
 
 namespace Kassajournal.App.Views;
@@ -27,6 +28,14 @@ public partial class DayEntryView : UserControl
         if (sender is CheckBox { IsChecked: not null } checkBox && DataContext is DayEntryViewModel dayViewModel)
         {
             await dayViewModel.ToggleFeiertagAsync(checkBox.IsChecked.Value);
+        }
+    }
+
+    private void Datum_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (DataContext is DayEntryViewModel dayViewModel)
+        {
+            dayViewModel.DatumBearbeitenCommand.Execute(null);
         }
     }
 }

@@ -47,8 +47,27 @@
                     <TextBlock Text="{Binding Saldo, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="Bold" />
                 </StackPanel>
 
-                <Button Grid.Column="4" Content="+ Neuer Tag" Style="{StaticResource PrimaryButton}"
-                        Command="{Binding NeuerTagCommand}" VerticalAlignment="Center" />
+                <Grid Grid.Column="4" VerticalAlignment="Center">
+                    <Button x:Name="NeuerTagButton" Content="+ Neuer Tag" Style="{StaticResource PrimaryButton}"
+                            Command="{Binding NeuerTagVorbereitenCommand}" />
+                    <Popup IsOpen="{Binding IsAddingDay}" StaysOpen="False" Placement="Bottom"
+                           PlacementTarget="{Binding ElementName=NeuerTagButton}">
+                        <Border Style="{StaticResource CardBorder}" Padding="18" Margin="0,4,0,0">
+                            <StackPanel Width="220">
+                                <TextBlock Text="Tag nachtragen" Style="{StaticResource SectionTitleText}" />
+                                <TextBlock Text="Beliebiges Datum in diesem Monat wählen - auch zurückliegende Tage."
+                                           FontSize="11" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                <DatePicker SelectedDate="{Binding NeuerTagDatum}" />
+                                <TextBlock Text="{Binding NeuerTagFehler}" Foreground="{StaticResource BrushDanger}"
+                                           FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0" />
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button Content="Hinzufügen" Style="{StaticResource PrimaryButton}" Command="{Binding NeuerTagBestaetigenCommand}" />
+                                    <Button Content="Abbrechen" Style="{StaticResource SecondaryButton}" Margin="8,0,0,0" Command="{Binding NeuerTagAbbrechenCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </Grid>
             </Grid>
         </Border>
 
