@@ -1,0 +1,48 @@
+<UserControl x:Class="Kassajournal.App.Views.MonatsuebersichtView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="clr-namespace:Kassajournal.App.Views">
+
+    <!-- DataContext ist hier bewusst das MainViewModel (kein eigenes) - so lassen sich
+         Modul-Umschalter (Kassajournal/IVB) und die beiden Modul-ViewModels direkt binden. -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Button Content="Kassajournal" Command="{Binding ZeigeKassajournalCommand}" Padding="20,10" Margin="0,0,6,0">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IstKassajournalAktiv}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource BrushPrimary}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Button Content="IVB" Command="{Binding ZeigeIvbCommand}" Padding="20,10">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IstIvbAktiv}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource BrushPrimary}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <views:KassaModuleView DataContext="{Binding Kassajournal}"
+                                    Visibility="{Binding DataContext.IstKassajournalAktiv, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}" />
+            <views:IvbModuleView DataContext="{Binding Ivb}"
+                                  Visibility="{Binding DataContext.IstIvbAktiv, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}" />
+        </Grid>
+    </Grid>
+</UserControl>

@@ -36,6 +36,16 @@ public partial class IvbModuleViewModel : ObservableObject
         await Monate[today.Month - 1].EnsureLoadedAsync(Jahr);
     }
 
+    /// <summary>Siehe <see cref="KassaModuleViewModel.RefreshHeutigenMonatAsync"/> - dasselbe Prinzip für IVB.</summary>
+    public async Task RefreshHeutigenMonatAsync()
+    {
+        var heutigerMonat = Monate[DateTime.Today.Month - 1];
+        if (heutigerMonat.IsLoaded && heutigerMonat.Year == Jahr)
+        {
+            await heutigerMonat.ReloadAsync();
+        }
+    }
+
     public async Task OnTabSelectedAsync(int index)
     {
         SelectedTabIndex = index;

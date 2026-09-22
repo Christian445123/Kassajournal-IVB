@@ -6,9 +6,19 @@ using Kassajournal.Data.Sync;
 
 namespace Kassajournal.App.ViewModels;
 
+/// <summary>Die beiden obersten Seiten der App.</summary>
+public enum HauptSeite
+{
+    /// <summary>Startseite: heutiger Tag für Kassajournal + IVB zum direkten Eintippen.</summary>
+    Heute,
+
+    /// <summary>Alle Monate, Auswertung und Vergleich - je Bereich (Kassajournal/IVB).</summary>
+    Monatsuebersicht,
+}
+
 /// <summary>
-/// Haupt-ViewModel: EIN Programm ("Kassajournal &amp; IVB") mit Umschalter zwischen den zwei
-/// fachlichen Bereichen. Sorgt dafür, dass beim Start in beiden Bereichen der heutige Tag bereitsteht.
+/// Haupt-ViewModel: EIN Programm ("Kassajournal &amp; IVB"). Oberste Ebene ist "Heute" (Startseite,
+/// direkt zum Eintippen) und "Monatsübersicht" (alle Monate + Auswertung + Vergleich je Bereich).
 /// </summary>
 public partial class MainViewModel : ObservableObject
 {
@@ -16,12 +26,14 @@ public partial class MainViewModel : ObservableObject
     private readonly IvbSyncService _ivbSyncService;
 
     public MainViewModel(
+        HeuteViewModel heute,
         KassaModuleViewModel kassajournal,
         IvbModuleViewModel ivb,
         SyncService kassaSyncService,
         IvbSyncService ivbSyncService,
         UpdateManagerViewModel updateManager)
     {
+        Heute = heute;
         Kassajournal = kassajournal;
         Ivb = ivb;
         _kassaSyncService = kassaSyncService;
@@ -29,12 +41,27 @@ public partial class MainViewModel : ObservableObject
         UpdateManager = updateManager;
     }
 
+    public HeuteViewModel Heute { get; }
+
     public KassaModuleViewModel Kassajournal { get; }
 
     public IvbModuleViewModel Ivb { get; }
 
     /// <summary>Wird auch vom Einstellungen-Dialog verwendet, damit beide Stellen denselben Update-Stand zeigen.</summary>
     public UpdateManagerViewModel UpdateManager { get; }
+
+    [ObservableProperty]
+    private HauptSeite _aktiveSeite = HauptSeite.Heute;
+
+    public bool IstHeuteAktiv => AktiveSeite == HauptSeite.Heute;
+
+    public bool IstMonatsuebersichtAktiv => AktiveSeite == HauptSeite.Monatsuebersicht;
+
+    partial void OnAktiveSeiteChanged(HauptSeite value)
+    {
+        OnPropertyChanged(nameof(IstHeuteAktiv));
+        OnPropertyChanged(nameof(IstMonatsuebersichtAktiv));
+    }
 
     [ObservableProperty]
     private AppModule _aktivesModul = AppModule.Kassajournal;
@@ -57,11 +84,14 @@ public partial class MainViewModel : ObservableObject
 
     public string AppVersion => UpdateManager.AktuelleVersion;
 
-    /// <summary>Wird beim App-Start aufgerufen: öffnet in beiden Bereichen den heutigen Tag, prüft Konfiguration und Updates im Hintergrund.</summary>
+    /// <summary>Wird beim App-Start aufgerufen: öffnet die "Heute"-Seite, prüft Konfiguration und Updates im Hintergrund.</summary>
     public async Task InitializeAsync()
     {
         RefreshDbStatus();
 
+        // Nacheinander laden (nicht parallel!) - alle greifen auf dieselbe lokale Datenbankverbindung
+        // zu, die nicht für gleichzeitige Zugriffe ausgelegt ist.
+        await Heute.RefreshAsync();
         await Kassajournal.InitializeAsync();
         await Ivb.InitializeAsync();
 
@@ -74,6 +104,24 @@ public partial class MainViewModel : ObservableObject
     {
         IstKassaDbKonfiguriert = new DatabaseSettingsStore(AppModule.Kassajournal).Load().IsConfigured;
         IstIvbDbKonfiguriert = new DatabaseSettingsStore(AppModule.Ivb).Load().IsConfigured;
+    }
+
+    [RelayCommand]
+    private async Task ZeigeHeuteAsync()
+    {
+        AktiveSeite = HauptSeite.Heute;
+        await Heute.RefreshAsync();
+    }
+
+    [RelayCommand]
+    private async Task ZeigeMonatsuebersichtAsync()
+    {
+        AktiveSeite = HauptSeite.Monatsuebersicht;
+
+        // Falls über "Heute" gerade etwas für den aktuellen Monat gebucht wurde, hier auffrischen,
+        // damit die Monatsübersicht nie veraltete Werte zeigt.
+        await Kassajournal.RefreshHeutigenMonatAsync();
+        await Ivb.RefreshHeutigenMonatAsync();
     }
 
     [RelayCommand]

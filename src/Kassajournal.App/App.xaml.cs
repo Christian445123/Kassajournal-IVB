@@ -60,7 +60,9 @@ public partial class App : Application
             var ivbAuswertung = new IvbAuswertungViewModel(ivbRepository);
             var ivbModule = new IvbModuleViewModel(ivbRepository, IvbRowFactory, ivbAuswertung);
 
-            var mainViewModel = new MainViewModel(kassaModule, ivbModule, kassaSyncService, ivbSyncService, updateManager);
+            var heuteViewModel = new HeuteViewModel(DayFactory, IvbRowFactory);
+
+            var mainViewModel = new MainViewModel(heuteViewModel, kassaModule, ivbModule, kassaSyncService, ivbSyncService, updateManager);
 
             var mainWindow = new MainWindow(mainViewModel);
             MainWindow = mainWindow;

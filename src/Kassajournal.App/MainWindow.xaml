@@ -15,7 +15,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Kopfleiste: Modul-Umschalter -->
+        <!-- Kopfleiste: Heute / Monatsübersicht -->
         <Border Grid.Row="0" Background="{StaticResource BrushSidebar}">
             <Grid Margin="24,14">
                 <Grid.ColumnDefinitions>
@@ -32,26 +32,26 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="Kassajournal" Command="{Binding ZeigeKassajournalCommand}" Padding="20,10" Margin="0,0,6,0">
+                    <Button Content="📅 Heute" Command="{Binding ZeigeHeuteCommand}" Padding="20,10" Margin="0,0,6,0">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                 <Setter Property="Foreground" Value="#C9D6E3" />
                                 <Setter Property="BorderThickness" Value="0" />
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IstKassajournalAktiv}" Value="True">
+                                    <DataTrigger Binding="{Binding IstHeuteAktiv}" Value="True">
                                         <Setter Property="Foreground" Value="White" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Content="IVB" Command="{Binding ZeigeIvbCommand}" Padding="20,10">
+                    <Button Content="📊 Monatsübersicht" Command="{Binding ZeigeMonatsuebersichtCommand}" Padding="20,10">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                 <Setter Property="Foreground" Value="#C9D6E3" />
                                 <Setter Property="BorderThickness" Value="0" />
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IstIvbAktiv}" Value="True">
+                                    <DataTrigger Binding="{Binding IstMonatsuebersichtAktiv}" Value="True">
                                         <Setter Property="Foreground" Value="White" />
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -74,12 +74,11 @@
             </Grid>
         </Border>
 
-        <!-- Inhalt: genau ein Modul sichtbar -->
+        <!-- Inhalt: genau eine Hauptseite sichtbar -->
         <Grid Grid.Row="1" Margin="32">
-            <views:KassaModuleView DataContext="{Binding Kassajournal}"
-                                    Visibility="{Binding DataContext.IstKassajournalAktiv, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}" />
-            <views:IvbModuleView DataContext="{Binding Ivb}"
-                                  Visibility="{Binding DataContext.IstIvbAktiv, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}" />
+            <views:HeuteView DataContext="{Binding Heute}"
+                              Visibility="{Binding DataContext.IstHeuteAktiv, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}" />
+            <views:MonatsuebersichtView Visibility="{Binding IstMonatsuebersichtAktiv, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
     </Grid>
 </Window>

@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace Kassajournal.App.Views;
 
-public partial class IvbMonthView : UserControl
+public partial class MonatsuebersichtView : UserControl
 {
-    public IvbMonthView()
+    public MonatsuebersichtView()
     {
         InitializeComponent();
     }

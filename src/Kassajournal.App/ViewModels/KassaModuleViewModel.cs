@@ -42,6 +42,20 @@ public partial class KassaModuleViewModel : ObservableObject
         await Monate[today.Month - 1].EnsureLoadedAsync(Jahr);
     }
 
+    /// <summary>
+    /// Lädt den aktuellen Monat (des heutigen Datums) neu, falls er bereits geladen war - wird
+    /// beim Wechsel zur Monatsübersicht aufgerufen, damit über "Heute" gebuchte Werte hier sofort
+    /// sichtbar sind, auch wenn dieser Monat-Reiter schon vorher geladen wurde.
+    /// </summary>
+    public async Task RefreshHeutigenMonatAsync()
+    {
+        var heutigerMonat = Monate[DateTime.Today.Month - 1];
+        if (heutigerMonat.IsLoaded && heutigerMonat.Year == Jahr)
+        {
+            await heutigerMonat.ReloadAsync();
+        }
+    }
+
     public async Task OnTabSelectedAsync(int index)
     {
         SelectedTabIndex = index;

@@ -40,6 +40,25 @@ public partial class IvbDayRowViewModel(IIvbRepository repository, IvbSyncServic
 
     partial void OnAmountChanged(decimal value) => AmountText = value.ToString("N2");
 
+    /// <summary>
+    /// Lädt diesen Tag eigenständig (fragt seine Daten selbst ab, ohne einen übergeordneten
+    /// Monats-Reiter zu benötigen) - wird von der "Heute"-Seite verwendet. Erkennt dabei automatisch
+    /// Feiertage wie beim regulären Monatsraster.
+    /// </summary>
+    public async Task LoadAsync(DateOnly date)
+    {
+        var monthEntries = await repository.GetEntriesForMonthAsync(date.Year, date.Month);
+        var existing = monthEntries.FirstOrDefault(e => e.Date == date && !e.IsDeleted);
+
+        if (existing is null && AustrianHolidays.IsHoliday(date))
+        {
+            existing = new IvbEntry { Date = date, Amount = 0m, IsFeiertag = true };
+            await repository.UpsertEntryAsync(existing);
+        }
+
+        Populate(date, existing);
+    }
+
     public void Populate(DateOnly date, IvbEntry? existing)
     {
         _isLoading = true;
