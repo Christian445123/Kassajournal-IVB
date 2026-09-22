@@ -19,6 +19,12 @@ public class KassaEntry
 
     public string? Notiz { get; set; }
 
+    /// <summary>
+    /// Markiert den ganzen Tag als Feiertag/geschlossen (gilt einheitlich für alle 6 Zeilen dieses Datums).
+    /// Sonntage werden ohnehin nie angezeigt - Feiertage sind für Mo-Sa-Ausnahmen (z. B. Weihnachten).
+    /// </summary>
+    public bool IsFeiertag { get; set; }
+
     public DateTimeOffset CreatedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset UpdatedAtUtc { get; set; } = DateTimeOffset.UtcNow;

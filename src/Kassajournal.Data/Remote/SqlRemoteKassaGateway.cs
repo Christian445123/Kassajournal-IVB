@@ -39,6 +39,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
                     amount DECIMAL(14,2) NOT NULL,
                     beleg_nr VARCHAR(64) NULL,
                     notiz VARCHAR(500) NULL,
+                    is_feiertag TINYINT(1) NOT NULL DEFAULT 0,
                     created_at_utc DATETIME(3) NOT NULL,
                     updated_at_utc DATETIME(3) NOT NULL,
                     is_deleted TINYINT(1) NOT NULL DEFAULT 0,
@@ -54,6 +55,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
                     amount NUMERIC(14,2) NOT NULL,
                     beleg_nr VARCHAR(64) NULL,
                     notiz VARCHAR(500) NULL,
+                    is_feiertag BOOLEAN NOT NULL DEFAULT FALSE,
                     created_at_utc TIMESTAMPTZ NOT NULL,
                     updated_at_utc TIMESTAMPTZ NOT NULL,
                     is_deleted BOOLEAN NOT NULL DEFAULT FALSE
@@ -71,6 +73,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
                         amount DECIMAL(14,2) NOT NULL,
                         beleg_nr NVARCHAR(64) NULL,
                         notiz NVARCHAR(500) NULL,
+                        is_feiertag BIT NOT NULL DEFAULT 0,
                         created_at_utc DATETIMEOFFSET NOT NULL,
                         updated_at_utc DATETIMEOFFSET NOT NULL,
                         is_deleted BIT NOT NULL DEFAULT 0
@@ -98,29 +101,29 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
         var sql = settings.Engine switch
         {
             DatabaseEngine.MySql => """
-                INSERT INTO kassa_entries (id, entry_date, category, amount, beleg_nr, notiz, created_at_utc, updated_at_utc, is_deleted)
-                VALUES (@Id, @Date, @Category, @Amount, @BelegNr, @Notiz, @CreatedAtUtc, @UpdatedAtUtc, @IsDeleted)
+                INSERT INTO kassa_entries (id, entry_date, category, amount, beleg_nr, notiz, is_feiertag, created_at_utc, updated_at_utc, is_deleted)
+                VALUES (@Id, @Date, @Category, @Amount, @BelegNr, @Notiz, @IsFeiertag, @CreatedAtUtc, @UpdatedAtUtc, @IsDeleted)
                 ON DUPLICATE KEY UPDATE
                     entry_date = VALUES(entry_date), category = VALUES(category), amount = VALUES(amount),
-                    beleg_nr = VALUES(beleg_nr), notiz = VALUES(notiz), updated_at_utc = VALUES(updated_at_utc),
-                    is_deleted = VALUES(is_deleted);
+                    beleg_nr = VALUES(beleg_nr), notiz = VALUES(notiz), is_feiertag = VALUES(is_feiertag),
+                    updated_at_utc = VALUES(updated_at_utc), is_deleted = VALUES(is_deleted);
                 """,
             DatabaseEngine.PostgreSql => """
-                INSERT INTO kassa_entries (id, entry_date, category, amount, beleg_nr, notiz, created_at_utc, updated_at_utc, is_deleted)
-                VALUES (@Id, @Date, @Category, @Amount, @BelegNr, @Notiz, @CreatedAtUtc, @UpdatedAtUtc, @IsDeleted)
+                INSERT INTO kassa_entries (id, entry_date, category, amount, beleg_nr, notiz, is_feiertag, created_at_utc, updated_at_utc, is_deleted)
+                VALUES (@Id, @Date, @Category, @Amount, @BelegNr, @Notiz, @IsFeiertag, @CreatedAtUtc, @UpdatedAtUtc, @IsDeleted)
                 ON CONFLICT (id) DO UPDATE SET
                     entry_date = EXCLUDED.entry_date, category = EXCLUDED.category, amount = EXCLUDED.amount,
-                    beleg_nr = EXCLUDED.beleg_nr, notiz = EXCLUDED.notiz, updated_at_utc = EXCLUDED.updated_at_utc,
-                    is_deleted = EXCLUDED.is_deleted;
+                    beleg_nr = EXCLUDED.beleg_nr, notiz = EXCLUDED.notiz, is_feiertag = EXCLUDED.is_feiertag,
+                    updated_at_utc = EXCLUDED.updated_at_utc, is_deleted = EXCLUDED.is_deleted;
                 """,
             DatabaseEngine.SqlServer => """
                 MERGE INTO kassa_entries AS target
                 USING (SELECT @Id AS id) AS src ON target.id = src.id
                 WHEN MATCHED THEN UPDATE SET
                     entry_date = @Date, category = @Category, amount = @Amount, beleg_nr = @BelegNr,
-                    notiz = @Notiz, updated_at_utc = @UpdatedAtUtc, is_deleted = @IsDeleted
-                WHEN NOT MATCHED THEN INSERT (id, entry_date, category, amount, beleg_nr, notiz, created_at_utc, updated_at_utc, is_deleted)
-                    VALUES (@Id, @Date, @Category, @Amount, @BelegNr, @Notiz, @CreatedAtUtc, @UpdatedAtUtc, @IsDeleted);
+                    notiz = @Notiz, is_feiertag = @IsFeiertag, updated_at_utc = @UpdatedAtUtc, is_deleted = @IsDeleted
+                WHEN NOT MATCHED THEN INSERT (id, entry_date, category, amount, beleg_nr, notiz, is_feiertag, created_at_utc, updated_at_utc, is_deleted)
+                    VALUES (@Id, @Date, @Category, @Amount, @BelegNr, @Notiz, @IsFeiertag, @CreatedAtUtc, @UpdatedAtUtc, @IsDeleted);
                 """,
             _ => throw new NotSupportedException(),
         };
@@ -133,6 +136,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
             e.Amount,
             e.BelegNr,
             e.Notiz,
+            e.IsFeiertag,
             e.CreatedAtUtc,
             e.UpdatedAtUtc,
             e.IsDeleted,
@@ -148,7 +152,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
 
         const string sql = """
             SELECT id AS Id, entry_date AS Date, category AS Category, amount AS Amount,
-                   beleg_nr AS BelegNr, notiz AS Notiz, created_at_utc AS CreatedAtUtc,
+                   beleg_nr AS BelegNr, notiz AS Notiz, is_feiertag AS IsFeiertag, created_at_utc AS CreatedAtUtc,
                    updated_at_utc AS UpdatedAtUtc, is_deleted AS IsDeleted
             FROM kassa_entries
             WHERE updated_at_utc > @Since
@@ -164,6 +168,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
             Amount = Convert.ToDecimal(row.Amount),
             BelegNr = row.BelegNr,
             Notiz = row.Notiz,
+            IsFeiertag = Convert.ToBoolean(row.IsFeiertag),
             CreatedAtUtc = ToUtcOffset(row.CreatedAtUtc),
             UpdatedAtUtc = ToUtcOffset(row.UpdatedAtUtc),
             IsDeleted = Convert.ToBoolean(row.IsDeleted),

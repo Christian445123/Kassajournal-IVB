@@ -76,9 +76,10 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
             var dates = monthEntries.Select(e => e.Date).Distinct().ToList();
 
             var today = DateOnly.FromDateTime(DateTime.Today);
-            if (today.Year == Year && today.Month == Month && !dates.Contains(today))
+            if (today.Year == Year && today.Month == Month && today.DayOfWeek != DayOfWeek.Sunday && !dates.Contains(today))
             {
                 // Der Tag, an dem das Programm geöffnet wurde, steht immer bereit - auch ohne Buchungen.
+                // Sonntag wird nie automatisch angelegt (Mo-Sa, wie IVB).
                 dates.Add(today);
             }
 
@@ -158,6 +159,11 @@ public partial class KassaMonthViewModel(IKassaRepository repository, Func<DayEn
     {
         var letzterTag = Tage.Count > 0 ? Tage.Max(d => d.Date) : new DateOnly(Year, Month, 1).AddDays(-1);
         var naechsterTag = letzterTag.AddDays(1);
+        if (naechsterTag.DayOfWeek == DayOfWeek.Sunday)
+        {
+            naechsterTag = naechsterTag.AddDays(1); // Sonntag überspringen (Mo-Sa, wie IVB)
+        }
+
         if (naechsterTag.Month != Month || naechsterTag.Year != Year)
         {
             return; // Monat ist voll - nächster Tag gehört in den nächsten Monat

@@ -1,0 +1,75 @@
+name: Release
+
+# Läuft automatisch, sobald ein Versions-Tag wie "v1.2.3" gepusht wird.
+# Baut die App, packt sie als MSI (WiX) und veröffentlicht sie als GitHub Release mit der
+# MSI als Anhang. Die App prüft beim Start selbst gegen die GitHub-Releases-API, ob eine
+# neuere Version verfügbar ist (siehe Kassajournal.Update/GitHubUpdateChecker.cs).
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (z. B. 1.2.3) für einen manuellen Testlauf ohne Tag"
+        required: true
+        default: "0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: Version aus Tag ermitteln
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $version = "${{ github.ref_name }}".TrimStart("v")
+          } else {
+            $version = "${{ inputs.version }}"
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=v$version" >> $env:GITHUB_OUTPUT
+
+      - name: .NET SDK einrichten
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: WiX Toolset installieren
+        run: dotnet tool install --global wix --version 5.0.2
+
+      - name: Tests ausführen
+        run: dotnet test src/Kassajournal.Core.Tests/Kassajournal.Core.Tests.csproj -c Release
+
+      - name: App veröffentlichen (self-contained, win-x64)
+        run: >
+          dotnet publish src/Kassajournal.App/Kassajournal.App.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=false
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:AssemblyVersion=${{ steps.version.outputs.version }}.0
+          -p:FileVersion=${{ steps.version.outputs.version }}.0
+          -o publish/win-x64
+
+      - name: MSI bauen
+        run: >
+          dotnet build installer/Kassajournal.Installer.wixproj
+          -p:ProductVersion=${{ steps.version.outputs.version }}
+          -p:PublishDir=${{ github.workspace }}\publish\win-x64\
+          -o installer/bin
+
+      - name: GitHub Release erstellen und MSI hochladen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Kassajournal & IVB ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: installer/bin/Kassajournal-IVB-Setup.msi

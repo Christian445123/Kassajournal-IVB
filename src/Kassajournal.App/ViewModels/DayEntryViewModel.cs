@@ -75,6 +75,9 @@ public partial class DayEntryViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBusy;
 
+    [ObservableProperty]
+    private bool _isFeiertag;
+
     public string DateDisplay => Date.ToString("dddd, dd. MMMM yyyy", CultureInfo.GetCultureInfo("de-AT"));
 
     public bool IstHeute => Date == DateOnly.FromDateTime(DateTime.Today);
@@ -110,6 +113,7 @@ public partial class DayEntryViewModel : ObservableObject
 
             var dayEntries = monthEntries.Where(e => e.Date == date).ToList();
             IsNewDay = dayEntries.Count == 0;
+            IsFeiertag = dayEntries.Any(e => e.IsFeiertag);
 
             foreach (var line in Lines)
             {
@@ -182,11 +186,52 @@ public partial class DayEntryViewModel : ObservableObject
             Amount = line.Amount,
             BelegNr = line.BelegNr,
             Notiz = line.Notiz,
+            IsFeiertag = IsFeiertag,
         };
 
         await _repository.UpsertEntryAsync(entry);
         IsNewDay = false;
         StatusMessage = $"Gespeichert um {DateTime.Now:HH:mm:ss} Uhr.";
+        EntrySaved?.Invoke(this, EventArgs.Empty);
+
+        _ = SyncInBackgroundAsync();
+    }
+
+    /// <summary>
+    /// Markiert den Tag als Feiertag/geschlossen (oder hebt das auf) - setzt/entfernt die Kennzeichnung
+    /// auf allen 6 Zeilen dieses Tages und leert bei Aktivierung die Beträge, da an diesem Tag nichts gebucht wird.
+    /// </summary>
+    public async Task ToggleFeiertagAsync(bool istFeiertag)
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        IsFeiertag = istFeiertag;
+
+        foreach (var line in Lines)
+        {
+            if (istFeiertag)
+            {
+                line.Amount = 0m;
+            }
+
+            var entry = new KassaEntry
+            {
+                Id = line.EntryId,
+                Date = Date,
+                Category = line.Category,
+                Amount = line.Amount,
+                BelegNr = line.BelegNr,
+                Notiz = line.Notiz,
+                IsFeiertag = istFeiertag,
+            };
+            await _repository.UpsertEntryAsync(entry);
+        }
+
+        IsNewDay = false;
+        StatusMessage = istFeiertag ? "Als Feiertag markiert." : "Feiertags-Markierung entfernt.";
         EntrySaved?.Invoke(this, EventArgs.Empty);
 
         _ = SyncInBackgroundAsync();

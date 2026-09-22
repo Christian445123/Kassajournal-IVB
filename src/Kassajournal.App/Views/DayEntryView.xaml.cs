@@ -21,4 +21,12 @@ public partial class DayEntryView : UserControl
             }
         }
     }
+
+    private async void Feiertag_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox { IsChecked: not null } checkBox && DataContext is DayEntryViewModel dayViewModel)
+        {
+            await dayViewModel.ToggleFeiertagAsync(checkBox.IsChecked.Value);
+        }
+    }
 }

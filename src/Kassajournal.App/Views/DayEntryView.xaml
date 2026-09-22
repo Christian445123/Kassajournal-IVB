@@ -5,7 +5,7 @@
 
     <!-- Kompakte Zeile für einen Tag, wird pro Tag innerhalb eines Monats-Reiters wiederholt.
          Farbiger Rand links = heute; Symbol rechts = Soll/Haben-Check (✓ passt / ⚠ Differenz). -->
-    <Border Style="{StaticResource CardBorder}" Padding="14,10" Margin="0,0,0,8">
+    <Border>
         <Border.BorderBrush>
             <SolidColorBrush Color="{StaticResource ColorBorder}" />
         </Border.BorderBrush>
@@ -25,6 +25,7 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="118" />
+                <ColumnDefinition Width="88" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="130" />
             </Grid.ColumnDefinitions>
@@ -35,8 +36,13 @@
                 <TextBlock Text="{Binding Date, StringFormat={}{0:dddd}}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
             </StackPanel>
 
+            <!-- Feiertag/geschlossen -->
+            <CheckBox Grid.Column="1" Content="Feiertag" VerticalAlignment="Center"
+                      IsChecked="{Binding IsFeiertag}" Checked="Feiertag_Checked" Unchecked="Feiertag_Checked" />
+
             <!-- Die 6 Kategorien nebeneinander, in fixer Reihenfolge wie in der Excel-Vorlage -->
-            <ItemsControl Grid.Column="1" ItemsSource="{Binding Lines}" Margin="4,0">
+            <ItemsControl Grid.Column="2" ItemsSource="{Binding Lines}" Margin="4,0"
+                          Visibility="{Binding IsFeiertag, Converter={StaticResource InverseBoolToVisibility}}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Rows="1" Columns="6" />
@@ -47,8 +53,7 @@
                         <StackPanel Margin="4,0">
                             <TextBlock Text="{Binding DisplayName}" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
                                        TextTrimming="CharacterEllipsis" Margin="2,0,2,3" />
-                            <TextBox Style="{StaticResource AmountTextBox}" FontSize="14" Padding="6,5"
-                                     Text="{Binding AmountText, UpdateSourceTrigger=PropertyChanged}"
+                            <TextBox Text="{Binding AmountText, UpdateSourceTrigger=PropertyChanged}"
                                      LostFocus="AmountTextBox_LostFocus" Tag="{Binding}">
                                 <TextBox.Style>
                                     <Style TargetType="TextBox" BasedOn="{StaticResource AmountTextBox}">
@@ -67,17 +72,13 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <TextBlock Grid.Column="2" Text="Geschlossen - keine Buchung an diesem Tag." VerticalAlignment="Center"
+                       Foreground="{StaticResource BrushTextSecondary}" FontStyle="Italic" Margin="8,0"
+                       Visibility="{Binding IsFeiertag, Converter={StaticResource BoolToVisibility}}" />
+
             <!-- Status: passt / Differenz -->
-            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IstAusgeglichen}" Value="True">
-                                <Setter Property="Tag" Value="ok" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
+            <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right"
+                        Visibility="{Binding IsFeiertag, Converter={StaticResource InverseBoolToVisibility}}">
                 <TextBlock HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="13">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">

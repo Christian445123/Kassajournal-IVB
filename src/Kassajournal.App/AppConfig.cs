@@ -6,6 +6,6 @@ namespace Kassajournal.App;
 /// </summary>
 public static class AppConfig
 {
-    public const string GitHubOwner = "TODO-GITHUB-OWNER";
-    public const string GitHubRepository = "kassajournal";
+    public const string GitHubOwner = "Christian445123";
+    public const string GitHubRepository = "Kassajournal-IVB";
 }

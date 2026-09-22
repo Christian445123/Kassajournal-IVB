@@ -15,12 +15,12 @@ public partial class MainWindow : Window
         DataContext = _viewModel;
     }
 
-    private async void Einstellungen_Click(object sender, RoutedEventArgs e)
+    private void Einstellungen_Click(object sender, RoutedEventArgs e)
     {
         var settingsWindow = new SettingsWindow { Owner = this };
         settingsWindow.ShowDialog();
 
-        // Nach dem Schließen der Einstellungen ggf. neu laden (z. B. DB-Status-Hinweis aktualisieren).
-        await _viewModel.InitializeAsync();
+        // Nach dem Schließen der Einstellungen den DB-Status-Hinweis aktualisieren (falls neu konfiguriert).
+        _viewModel.RefreshDbStatus();
     }
 }

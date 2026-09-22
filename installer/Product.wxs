@@ -1,0 +1,70 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <!--
+    UpgradeCode ist FIX und darf sich NIE ändern - er identifiziert "dieselbe Anwendung" über alle
+    Versionen hinweg und ist die Grundlage dafür, dass ein neues Setup (siehe Auto-Update) die
+    alte Version sauber ersetzt statt eine zweite Installation daneben anzulegen.
+  -->
+  <Package Name="Kassajournal &amp; IVB"
+           Manufacturer="Kassajournal &amp; IVB"
+           Version="$(var.ProductVersion)"
+           UpgradeCode="32D54C90-7535-437E-B8E6-B1CC656464EB"
+           Language="1031"
+           InstallerVersion="500"
+           Scope="perMachine">
+
+    <SummaryInformation Description="Kassajournal &amp; IVB Setup" />
+
+    <MajorUpgrade
+      DowngradeErrorMessage="Es ist bereits eine neuere Version von Kassajournal &amp; IVB installiert."
+      Schedule="afterInstallInitialize" />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Kassajournal und IVB" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppProgramMenuFolder" Name="Kassajournal und IVB" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder" />
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishDir)**" />
+    </ComponentGroup>
+
+    <Component Id="StartMenuShortcut" Directory="AppProgramMenuFolder" Guid="6B1E9C1A-6E3C-4C2E-9E77-0B7F6D2B7A11">
+      <Shortcut Id="StartMenuShortcutFile"
+                Name="Kassajournal &amp; IVB"
+                Description="Kassajournal &amp; IVB starten"
+                Target="[INSTALLFOLDER]Kassajournal.App.exe"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFolder Id="RemoveAppProgramMenuFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\Kassajournal-IVB" Name="StartMenuShortcutInstalled" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="9F3F0F0E-9F0A-4E0B-8B1B-8C7A1D8E5E22">
+      <Shortcut Id="DesktopShortcutFile"
+                Name="Kassajournal &amp; IVB"
+                Description="Kassajournal &amp; IVB starten"
+                Target="[INSTALLFOLDER]Kassajournal.App.exe"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RegistryValue Root="HKCU" Key="Software\Kassajournal-IVB" Name="DesktopShortcutInstalled" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <Feature Id="MainFeature" Title="Kassajournal &amp; IVB" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Kassajournal &amp; IVB jetzt starten" />
+    <Property Id="WixShellExecTarget" Value="[INSTALLFOLDER]Kassajournal.App.exe" />
+
+  </Package>
+</Wix>
