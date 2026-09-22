@@ -1,0 +1,103 @@
+<UserControl x:Class="Kassajournal.App.Views.DayEntryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Kassajournal.App.ViewModels">
+
+    <!-- Kompakte Zeile für einen Tag, wird pro Tag innerhalb eines Monats-Reiters wiederholt.
+         Farbiger Rand links = heute; Symbol rechts = Soll/Haben-Check (✓ passt / ⚠ Differenz). -->
+    <Border Style="{StaticResource CardBorder}" Padding="14,10" Margin="0,0,0,8">
+        <Border.BorderBrush>
+            <SolidColorBrush Color="{StaticResource ColorBorder}" />
+        </Border.BorderBrush>
+        <Border.Style>
+            <Style TargetType="Border" BasedOn="{StaticResource CardBorder}">
+                <Setter Property="Padding" Value="14,10" />
+                <Setter Property="Margin" Value="0,0,0,8" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IstHeute}" Value="True">
+                        <Setter Property="BorderBrush" Value="{StaticResource BrushPrimary}" />
+                        <Setter Property="BorderThickness" Value="2" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="118" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="130" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Datum -->
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                <TextBlock Text="{Binding Date, StringFormat={}{0:dddd}}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+            </StackPanel>
+
+            <!-- Die 6 Kategorien nebeneinander, in fixer Reihenfolge wie in der Excel-Vorlage -->
+            <ItemsControl Grid.Column="1" ItemsSource="{Binding Lines}" Margin="4,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" Columns="6" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:CategoryLineViewModel}">
+                        <StackPanel Margin="4,0">
+                            <TextBlock Text="{Binding DisplayName}" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
+                                       TextTrimming="CharacterEllipsis" Margin="2,0,2,3" />
+                            <TextBox Style="{StaticResource AmountTextBox}" FontSize="14" Padding="6,5"
+                                     Text="{Binding AmountText, UpdateSourceTrigger=PropertyChanged}"
+                                     LostFocus="AmountTextBox_LostFocus" Tag="{Binding}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource AmountTextBox}">
+                                        <Setter Property="FontSize" Value="14" />
+                                        <Setter Property="Padding" Value="6,5" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSoll}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource BrushSoll}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Status: passt / Differenz -->
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IstAusgeglichen}" Value="True">
+                                <Setter Property="Tag" Value="ok" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="13">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="✓ passt" />
+                            <Setter Property="Foreground" Value="{StaticResource BrushSoll}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IstAusgeglichen}" Value="False">
+                                    <Setter Property="Text" Value="⚠ fehlt" />
+                                    <Setter Property="Foreground" Value="{StaticResource BrushDanger}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock HorizontalAlignment="Right" FontSize="12" Foreground="{StaticResource BrushDanger}"
+                           Text="{Binding Differenz, StringFormat={}{0:N2} €}"
+                           Visibility="{Binding IstAusgeglichen, Converter={StaticResource InverseBoolToVisibility}}" />
+                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"
+                           Text="{Binding LaufenderSaldo, StringFormat=Kasse: {0:N2} €}" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

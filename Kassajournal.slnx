@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Kassajournal.App/Kassajournal.App.csproj" />
+    <Project Path="src/Kassajournal.Core.Tests/Kassajournal.Core.Tests.csproj" />
+    <Project Path="src/Kassajournal.Core/Kassajournal.Core.csproj" />
+    <Project Path="src/Kassajournal.Data/Kassajournal.Data.csproj" />
+    <Project Path="src/Kassajournal.Update/Kassajournal.Update.csproj" />
+  </Folder>
+</Solution>

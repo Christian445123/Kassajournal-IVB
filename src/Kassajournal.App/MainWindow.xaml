@@ -1,0 +1,70 @@
+<Window x:Class="Kassajournal.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Kassajournal.App.ViewModels"
+        xmlns:views="clr-namespace:Kassajournal.App.Views"
+        Title="Kassajournal"
+        Height="800" Width="1280" MinHeight="640" MinWidth="1000"
+        Background="{StaticResource BrushBackground}"
+        FontFamily="{StaticResource AppFont}"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:DayEntryViewModel}">
+            <views:DayEntryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MonthOverviewViewModel}">
+            <views:MonthOverviewView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{StaticResource BrushSidebar}">
+            <DockPanel LastChildFill="False">
+                <StackPanel DockPanel.Dock="Top" Margin="20,24,20,24">
+                    <TextBlock Text="Kassajournal" Foreground="White" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="{Binding AppVersion, StringFormat=Version {0}}" Foreground="#8FA3B8" FontSize="11" Margin="0,2,0,0" />
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Top">
+                    <Button Style="{StaticResource SidebarButton}" Command="{Binding ZeigeHeuteCommand}">
+                        <TextBlock Text="📅  Heute" />
+                    </Button>
+                    <Button Style="{StaticResource SidebarButton}" Command="{Binding ZeigeTagesansichtCommand}">
+                        <TextBlock Text="🧾  Tagesansicht" />
+                    </Button>
+                    <Button Style="{StaticResource SidebarButton}" Command="{Binding ZeigeMonatsuebersichtCommand}">
+                        <TextBlock Text="📊  Monatsübersicht" />
+                    </Button>
+                    <Button Style="{StaticResource SidebarButton}" Click="Einstellungen_Click">
+                        <TextBlock Text="⚙️  Einstellungen" />
+                    </Button>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="16,0,16,20">
+                    <Border Background="#1E4165" CornerRadius="8" Padding="12" Visibility="{Binding UpdateVerfuegbar, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding UpdateHinweis}" Foreground="White" FontSize="12" TextWrapping="Wrap" />
+                            <Button Content="Jetzt aktualisieren" Style="{StaticResource SecondaryButton}" Margin="0,8,0,0"
+                                    Foreground="White" Command="{Binding UpdateInstallierenCommand}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#1E4165" CornerRadius="8" Padding="10" Margin="0,10,0,0"
+                            Visibility="{Binding IstDbKonfiguriert, Converter={StaticResource InverseBoolToVisibility}}">
+                        <TextBlock Text="⚠ Keine Datenbank verbunden. Bitte in den Einstellungen konfigurieren." Foreground="#F2C879" FontSize="11" TextWrapping="Wrap" />
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Inhalt -->
+        <ContentControl Grid.Column="1" Content="{Binding CurrentView}" Margin="32" />
+    </Grid>
+</Window>
