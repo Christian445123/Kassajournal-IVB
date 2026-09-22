@@ -94,7 +94,7 @@ public partial class DatabaseConnectionSettingsViewModel : ObservableObject
         TestStatusMessage = "Verbindung wird geprüft …";
         try
         {
-            var gateway = new SqlRemoteKassaGateway(BuildSettings());
+            var gateway = new SqlRemoteKassaGateway(BuildSettings);
             var (success, error) = await gateway.TestConnectionAsync();
             TestWasSuccessful = success;
             TestStatusMessage = success

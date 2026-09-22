@@ -38,11 +38,14 @@ public partial class App : Application
             IKassaRepository kassaRepository = new LocalKassaRepository(localDb);
             IIvbRepository ivbRepository = new LocalIvbRepository(localDb);
 
-            var kassaDbSettings = new DatabaseSettingsStore(AppModule.Kassajournal).Load();
-            var ivbDbSettings = new DatabaseSettingsStore(AppModule.Ivb).Load();
+            // Zugangsdaten werden bei JEDER Synchronisation frisch aus den Einstellungen gelesen
+            // (nicht nur einmal hier beim Start) - so wirkt ein neues Speichern der Zugangsdaten
+            // sofort, ohne dass die App neu gestartet werden muss.
+            var kassaSettingsStore = new DatabaseSettingsStore(AppModule.Kassajournal);
+            var ivbSettingsStore = new DatabaseSettingsStore(AppModule.Ivb);
 
-            IRemoteKassaGateway kassaGateway = new SqlRemoteKassaGateway(kassaDbSettings);
-            IRemoteIvbGateway ivbGateway = new SqlRemoteIvbGateway(ivbDbSettings);
+            IRemoteKassaGateway kassaGateway = new SqlRemoteKassaGateway(kassaSettingsStore.Load);
+            IRemoteIvbGateway ivbGateway = new SqlRemoteIvbGateway(ivbSettingsStore.Load);
 
             var kassaSyncService = new SyncService(kassaRepository, kassaGateway);
             var ivbSyncService = new IvbSyncService(ivbRepository, ivbGateway);

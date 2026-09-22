@@ -12,12 +12,26 @@ public static class LocalDatabaseKeyProvider
 {
     public static string GetOrCreateKey()
     {
-        var existing = ProtectedFileStore.ReadProtected(AppPaths.LocalDatabaseKeyFile);
-        if (!string.IsNullOrEmpty(existing))
+        try
         {
-            return existing;
+            var existing = ProtectedFileStore.ReadProtected(AppPaths.LocalDatabaseKeyFile);
+            if (!string.IsNullOrEmpty(existing))
+            {
+                return existing;
+            }
+        }
+        catch (CryptographicException)
+        {
+            // Schlüsseldatei lässt sich nicht mehr entschlüsseln (z. B. beschädigt oder von einem
+            // anderen Windows-Konto/PC übrig geblieben) - statt die App abstürzen zu lassen, wird
+            // unten einfach ein neuer Schlüssel erzeugt.
         }
 
+        return CreateNewKey();
+    }
+
+    private static string CreateNewKey()
+    {
         var keyBytes = RandomNumberGenerator.GetBytes(32);
         var key = Convert.ToBase64String(keyBytes);
         ProtectedFileStore.WriteProtected(AppPaths.LocalDatabaseKeyFile, key);

@@ -8,13 +8,20 @@ namespace Kassajournal.Data.Remote;
 /// Eigene Tabelle "ivb_entries" in der eigenen ivb_db-Datenbank - komplett getrennt von
 /// den Kassajournal-Daten.
 /// </summary>
-public class SqlRemoteIvbGateway(DatabaseSettings settings) : IRemoteIvbGateway
+public class SqlRemoteIvbGateway(Func<DatabaseSettings> settingsProvider) : IRemoteIvbGateway
 {
+    /// <summary>
+    /// Wird bei JEDEM Zugriff neu aus dem Provider gelesen (statt einmalig im Konstruktor
+    /// festzuhalten) - so wirken neu gespeicherte Zugangsdaten aus den Einstellungen sofort,
+    /// ohne dass die App neu gestartet werden muss.
+    /// </summary>
+    private DatabaseSettings Settings => settingsProvider();
+
     public async Task<(bool Success, string? ErrorMessage)> TestConnectionAsync(CancellationToken ct = default)
     {
         try
         {
-            await using var connection = RemoteConnectionFactory.Create(settings);
+            await using var connection = RemoteConnectionFactory.Create(Settings);
             await connection.OpenAsync(ct);
             return (true, null);
         }
@@ -26,6 +33,7 @@ public class SqlRemoteIvbGateway(DatabaseSettings settings) : IRemoteIvbGateway
 
     public async Task EnsureSchemaAsync(CancellationToken ct = default)
     {
+        var settings = Settings;
         await using var connection = RemoteConnectionFactory.Create(settings);
         await connection.OpenAsync(ct);
 
@@ -89,6 +97,7 @@ public class SqlRemoteIvbGateway(DatabaseSettings settings) : IRemoteIvbGateway
             return;
         }
 
+        var settings = Settings;
         await using var connection = RemoteConnectionFactory.Create(settings);
         await connection.OpenAsync(ct);
 
@@ -137,7 +146,7 @@ public class SqlRemoteIvbGateway(DatabaseSettings settings) : IRemoteIvbGateway
 
     public async Task<IReadOnlyList<IvbEntry>> PullChangedSinceAsync(DateTimeOffset since, CancellationToken ct = default)
     {
-        await using var connection = RemoteConnectionFactory.Create(settings);
+        await using var connection = RemoteConnectionFactory.Create(Settings);
         await connection.OpenAsync(ct);
 
         const string sql = """

@@ -8,12 +8,20 @@ namespace Kassajournal.Data.Remote;
 /// (MySQL, PostgreSQL, SQL Server). Eine einzige Tabelle "kassa_entries" reicht für den Zweck
 /// dieser App; die Upsert-Syntax unterscheidet sich leicht je Engine und wird darum je Fall gebaut.
 /// </summary>
-public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGateway
+public class SqlRemoteKassaGateway(Func<DatabaseSettings> settingsProvider) : IRemoteKassaGateway
 {
+    /// <summary>
+    /// Wird bei JEDEM Zugriff neu aus dem Provider gelesen (statt einmalig im Konstruktor
+    /// festzuhalten) - so wirken neu gespeicherte Zugangsdaten aus den Einstellungen sofort,
+    /// ohne dass die App neu gestartet werden muss.
+    /// </summary>
+    private DatabaseSettings Settings => settingsProvider();
+
     public async Task<(bool Success, string? ErrorMessage)> TestConnectionAsync(CancellationToken ct = default)
     {
         try
         {
+            var settings = Settings;
             await using var connection = RemoteConnectionFactory.Create(settings);
             await connection.OpenAsync(ct);
             return (true, null);
@@ -26,6 +34,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
 
     public async Task EnsureSchemaAsync(CancellationToken ct = default)
     {
+        var settings = Settings;
         await using var connection = RemoteConnectionFactory.Create(settings);
         await connection.OpenAsync(ct);
 
@@ -95,6 +104,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
             return;
         }
 
+        var settings = Settings;
         await using var connection = RemoteConnectionFactory.Create(settings);
         await connection.OpenAsync(ct);
 
@@ -147,7 +157,7 @@ public class SqlRemoteKassaGateway(DatabaseSettings settings) : IRemoteKassaGate
 
     public async Task<IReadOnlyList<KassaEntry>> PullChangedSinceAsync(DateTimeOffset since, CancellationToken ct = default)
     {
-        await using var connection = RemoteConnectionFactory.Create(settings);
+        await using var connection = RemoteConnectionFactory.Create(Settings);
         await connection.OpenAsync(ct);
 
         const string sql = """
