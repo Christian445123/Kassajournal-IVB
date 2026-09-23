@@ -11,8 +11,8 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
-            <Button Content="Kassajournal" Command="{Binding ZeigeKassajournalCommand}" Padding="20,10" Margin="0,0,6,0">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
+            <Button Content="Kassajournal" FontSize="16" Command="{Binding ZeigeKassajournalCommand}" Padding="24,12" Margin="0,0,8,0">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                         <Style.Triggers>
@@ -24,7 +24,7 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button Content="IVB" Command="{Binding ZeigeIvbCommand}" Padding="20,10">
+            <Button Content="IVB" FontSize="16" Command="{Binding ZeigeIvbCommand}" Padding="24,12">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                         <Style.Triggers>

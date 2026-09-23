@@ -4,7 +4,7 @@
         xmlns:views="clr-namespace:Kassajournal.App.Views"
         Title="Kassajournal &amp; IVB"
         Icon="/Assets/AppIcon.ico"
-        Height="860" Width="1360" MinHeight="680" MinWidth="1080"
+        Height="920" Width="1460" MinHeight="720" MinWidth="1150"
         Background="{StaticResource BrushBackground}"
         FontFamily="{StaticResource AppFont}"
         WindowStartupLocation="CenterScreen">
@@ -27,12 +27,12 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,28,0">
-                    <TextBlock Text="Kassajournal &amp; IVB" Foreground="White" FontSize="18" FontWeight="Bold" />
-                    <TextBlock Text="{Binding AppVersion, StringFormat=Version {0}}" Foreground="#8FA3B8" FontSize="11" />
+                    <TextBlock Text="Kassajournal &amp; IVB" Foreground="White" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="{Binding AppVersion, StringFormat=Version {0}}" Foreground="#8FA3B8" FontSize="12" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="📅 Heute" Command="{Binding ZeigeHeuteCommand}" Padding="20,10" Margin="0,0,6,0">
+                    <Button Content="📅 Heute" FontSize="15" Command="{Binding ZeigeHeuteCommand}" Padding="22,12" Margin="0,0,6,0">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                 <Setter Property="Foreground" Value="#C9D6E3" />
@@ -45,7 +45,7 @@
                             </Style>
                         </Button.Style>
                     </Button>
-                    <Button Content="📊 Monatsübersicht" Command="{Binding ZeigeMonatsuebersichtCommand}" Padding="20,10">
+                    <Button Content="📊 Monatsübersicht" FontSize="15" Command="{Binding ZeigeMonatsuebersichtCommand}" Padding="22,12">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                 <Setter Property="Foreground" Value="#C9D6E3" />
@@ -69,13 +69,13 @@
                     </StackPanel>
                 </Border>
 
-                <Button Grid.Column="4" Content="⚙️ Einstellungen" Style="{StaticResource SecondaryButton}"
-                        Foreground="#C9D6E3" BorderThickness="0" Click="Einstellungen_Click" />
+                <Button Grid.Column="4" Content="⚙️ Einstellungen" FontSize="15" Style="{StaticResource SecondaryButton}"
+                        Foreground="#C9D6E3" BorderThickness="0" Padding="18,12" Click="Einstellungen_Click" />
             </Grid>
         </Border>
 
         <!-- Inhalt: genau eine Hauptseite sichtbar -->
-        <Grid Grid.Row="1" Margin="32">
+        <Grid Grid.Row="1" Margin="36">
             <views:HeuteView DataContext="{Binding Heute}"
                               Visibility="{Binding DataContext.IstHeuteAktiv, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisibility}}" />
             <views:MonatsuebersichtView Visibility="{Binding IstMonatsuebersichtAktiv, Converter={StaticResource BoolToVisibility}}" />

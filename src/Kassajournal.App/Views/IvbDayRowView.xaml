@@ -4,7 +4,7 @@
 
     <!-- Eine Tageszeile im IVB-Journal: Wochentag, Datum, täglicher Umsatz, Feiertags-Häkchen.
          Wird sowohl im Wochenraster (IvbMonthView) als auch auf der "Heute"-Seite verwendet. -->
-    <Border Padding="0,6">
+    <Border Padding="4,10">
         <Border.Style>
             <Style TargetType="Border">
                 <Style.Triggers>
@@ -16,26 +16,26 @@
         </Border.Style>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="50" />
-                <ColumnDefinition Width="110" />
-                <ColumnDefinition Width="160" />
-                <ColumnDefinition Width="120" />
+                <ColumnDefinition Width="60" />
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="140" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="{Binding Wochentag}" FontWeight="SemiBold"
+            <TextBlock Grid.Column="0" Text="{Binding Wochentag}" FontSize="15" FontWeight="SemiBold"
                        Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" />
-            <TextBlock Grid.Column="1" Text="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" FontSize="16" VerticalAlignment="Center" />
 
-            <TextBox Grid.Column="2" Style="{StaticResource AmountTextBox}" Width="140" HorizontalAlignment="Left"
+            <TextBox Grid.Column="2" Style="{StaticResource AmountTextBox}" Width="170" HorizontalAlignment="Left"
                      Text="{Binding AmountText, UpdateSourceTrigger=PropertyChanged}"
                      IsEnabled="{Binding IsEditable}"
-                     LostFocus="AmountTextBox_LostFocus" />
+                     LostFocus="AmountTextBox_LostFocus" GotFocus="AmountTextBox_GotFocus" />
 
-            <CheckBox Grid.Column="3" Content="Feiertag" VerticalAlignment="Center"
+            <CheckBox Grid.Column="3" Content="Feiertag" FontSize="14" VerticalAlignment="Center"
                       IsChecked="{Binding IsFeiertag}" />
 
-            <TextBlock Grid.Column="4" Text="{Binding StatusMessage}" FontSize="11"
+            <TextBlock Grid.Column="4" Text="{Binding StatusMessage}" FontSize="12"
                        Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" HorizontalAlignment="Right" />
         </Grid>
     </Border>

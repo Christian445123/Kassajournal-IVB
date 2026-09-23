@@ -3,16 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:Kassajournal.App.ViewModels">
 
-    <!-- Kompakte Zeile für einen Tag, wird pro Tag innerhalb eines Monats-Reiters wiederholt.
-         Farbiger Rand links = heute; Symbol rechts = Soll/Haben-Check (✓ passt / ⚠ Differenz). -->
+    <!-- Zeile für einen Tag, wird pro Tag innerhalb eines Monats-Reiters (und auf der "Heute"-Seite)
+         wiederholt. Farbiger Rand links = heute; Symbol rechts = Soll/Haben-Check (✓ passt / ⚠ Differenz). -->
     <Border>
         <Border.BorderBrush>
             <SolidColorBrush Color="{StaticResource ColorBorder}" />
         </Border.BorderBrush>
         <Border.Style>
             <Style TargetType="Border" BasedOn="{StaticResource CardBorder}">
-                <Setter Property="Padding" Value="14,10" />
-                <Setter Property="Margin" Value="0,0,0,8" />
+                <Setter Property="Padding" Value="20,16" />
+                <Setter Property="Margin" Value="0,0,0,10" />
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding IstHeute}" Value="True">
                         <Setter Property="BorderBrush" Value="{StaticResource BrushPrimary}" />
@@ -24,35 +24,35 @@
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150" />
-                <ColumnDefinition Width="88" />
+                <ColumnDefinition Width="175" />
+                <ColumnDefinition Width="105" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="160" />
             </Grid.ColumnDefinitions>
 
             <!-- Datum: klicken zum Nachbessern (z. B. wenn ein Tag unter dem falschen Datum angelegt wurde) -->
             <Grid Grid.Column="0" VerticalAlignment="Center">
                 <StackPanel Cursor="Hand" ToolTip="Klicken, um das Datum zu ändern" MouseLeftButtonUp="Datum_Click"
                             Visibility="{Binding IsEditingDate, Converter={StaticResource InverseBoolToVisibility}}">
-                    <TextBlock Text="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
-                    <TextBlock Text="{Binding Date, StringFormat={}{0:dddd}}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                    <TextBlock Text="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBlock Text="{Binding Date, StringFormat={}{0:dddd}}" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" />
                 </StackPanel>
                 <StackPanel Visibility="{Binding IsEditingDate, Converter={StaticResource BoolToVisibility}}">
-                    <DatePicker SelectedDate="{Binding DatumBearbeitenWert}" FontSize="12" />
+                    <DatePicker SelectedDate="{Binding DatumBearbeitenWert}" FontSize="13" />
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <Button Content="✓ Speichern" FontSize="11" Padding="8,3" Style="{StaticResource PrimaryButton}" Command="{Binding DatumSpeichernCommand}" />
-                        <Button Content="✕" FontSize="11" Padding="8,3" Margin="4,0,0,0" Style="{StaticResource SecondaryButton}" Command="{Binding DatumAbbrechenCommand}" />
+                        <Button Content="✓ Speichern" FontSize="12" Padding="8,3" Style="{StaticResource PrimaryButton}" Command="{Binding DatumSpeichernCommand}" />
+                        <Button Content="✕" FontSize="12" Padding="8,3" Margin="4,0,0,0" Style="{StaticResource SecondaryButton}" Command="{Binding DatumAbbrechenCommand}" />
                     </StackPanel>
-                    <TextBlock Text="{Binding DatumFehler}" Foreground="{StaticResource BrushDanger}" FontSize="10" TextWrapping="Wrap" MaxWidth="140" Margin="0,2,0,0" />
+                    <TextBlock Text="{Binding DatumFehler}" Foreground="{StaticResource BrushDanger}" FontSize="11" TextWrapping="Wrap" MaxWidth="160" Margin="0,2,0,0" />
                 </StackPanel>
             </Grid>
 
             <!-- Feiertag/geschlossen -->
-            <CheckBox Grid.Column="1" Content="Feiertag" VerticalAlignment="Center"
+            <CheckBox Grid.Column="1" Content="Feiertag" FontSize="14" VerticalAlignment="Center"
                       IsChecked="{Binding IsFeiertag}" Checked="Feiertag_Checked" Unchecked="Feiertag_Checked" />
 
             <!-- Die 6 Kategorien nebeneinander, in fixer Reihenfolge wie in der Excel-Vorlage -->
-            <ItemsControl Grid.Column="2" ItemsSource="{Binding Lines}" Margin="4,0"
+            <ItemsControl Grid.Column="2" ItemsSource="{Binding Lines}" Margin="6,0"
                           Visibility="{Binding IsFeiertag, Converter={StaticResource InverseBoolToVisibility}}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -61,15 +61,15 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:CategoryLineViewModel}">
-                        <StackPanel Margin="4,0">
-                            <TextBlock Text="{Binding DisplayName}" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"
-                                       TextTrimming="CharacterEllipsis" Margin="2,0,2,3" />
+                        <StackPanel Margin="5,0">
+                            <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}"
+                                       TextTrimming="CharacterEllipsis" Margin="2,0,2,4" />
                             <TextBox Text="{Binding AmountText, UpdateSourceTrigger=PropertyChanged}"
-                                     LostFocus="AmountTextBox_LostFocus" Tag="{Binding}">
+                                     LostFocus="AmountTextBox_LostFocus" GotFocus="AmountTextBox_GotFocus" Tag="{Binding}">
                                 <TextBox.Style>
                                     <Style TargetType="TextBox" BasedOn="{StaticResource AmountTextBox}">
-                                        <Setter Property="FontSize" Value="14" />
-                                        <Setter Property="Padding" Value="6,5" />
+                                        <Setter Property="FontSize" Value="18" />
+                                        <Setter Property="Padding" Value="10,9" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsSoll}" Value="True">
                                                 <Setter Property="Foreground" Value="{StaticResource BrushSoll}" />
@@ -83,14 +83,14 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <TextBlock Grid.Column="2" Text="Geschlossen - keine Buchung an diesem Tag." VerticalAlignment="Center"
+            <TextBlock Grid.Column="2" Text="Geschlossen - keine Buchung an diesem Tag." FontSize="15" VerticalAlignment="Center"
                        Foreground="{StaticResource BrushTextSecondary}" FontStyle="Italic" Margin="8,0"
                        Visibility="{Binding IsFeiertag, Converter={StaticResource BoolToVisibility}}" />
 
             <!-- Status: passt / Differenz -->
             <StackPanel Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right"
                         Visibility="{Binding IsFeiertag, Converter={StaticResource InverseBoolToVisibility}}">
-                <TextBlock HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="13">
+                <TextBlock HorizontalAlignment="Right" FontWeight="SemiBold" FontSize="16">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Text" Value="✓ passt" />
@@ -104,10 +104,10 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
-                <TextBlock HorizontalAlignment="Right" FontSize="12" Foreground="{StaticResource BrushDanger}"
+                <TextBlock HorizontalAlignment="Right" FontSize="14" Foreground="{StaticResource BrushDanger}"
                            Text="{Binding Differenz, StringFormat={}{0:N2} €}"
                            Visibility="{Binding IstAusgeglichen, Converter={StaticResource InverseBoolToVisibility}}" />
-                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0"
+                <TextBlock HorizontalAlignment="Right" FontSize="13" Foreground="{StaticResource BrushTextSecondary}" Margin="0,3,0,0"
                            Text="{Binding LaufenderSaldo, StringFormat=Kasse: {0:N2} €}" />
             </StackPanel>
         </Grid>

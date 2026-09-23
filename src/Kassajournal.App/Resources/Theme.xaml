@@ -48,13 +48,13 @@
 
     <!-- Überschriften -->
     <Style x:Key="TitleText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontSize" Value="26" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}" />
     </Style>
 
     <Style x:Key="SectionTitleText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="15" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}" />
         <Setter Property="Margin" Value="0,0,0,8" />
@@ -64,7 +64,7 @@
     <Style x:Key="AmountTextBox" TargetType="TextBox">
         <Setter Property="FontSize" Value="20" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="Padding" Value="12,10" />
         <Setter Property="TextAlignment" Value="Right" />
         <Setter Property="Background" Value="{StaticResource BrushBackground}" />
         <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />

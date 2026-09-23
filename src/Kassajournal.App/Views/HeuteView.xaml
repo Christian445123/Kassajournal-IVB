@@ -5,14 +5,14 @@
              xmlns:views="clr-namespace:Kassajournal.App.Views">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="1000" HorizontalAlignment="Left">
+        <StackPanel MaxWidth="1150" HorizontalAlignment="Left">
 
             <TextBlock Text="Heute" Style="{StaticResource TitleText}" />
-            <TextBlock Text="{Binding HeutigesDatum}" FontSize="14" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,24" />
+            <TextBlock Text="{Binding HeutigesDatum}" FontSize="16" Foreground="{StaticResource BrushTextSecondary}" Margin="0,3,0,30" />
 
             <!-- Kassajournal -->
-            <TextBlock Text="Kassajournal" Style="{StaticResource SectionTitleText}" FontSize="16" Margin="0,0,0,10" />
-            <ContentControl Content="{Binding KassaHeute}" Margin="0,0,0,28">
+            <TextBlock Text="Kassajournal" Style="{StaticResource SectionTitleText}" FontSize="19" Margin="0,0,0,12" />
+            <ContentControl Content="{Binding KassaHeute}" Margin="0,0,0,32">
                 <ContentControl.Resources>
                     <DataTemplate DataType="{x:Type vm:DayEntryViewModel}">
                         <views:DayEntryView />
@@ -21,8 +21,8 @@
             </ContentControl>
 
             <!-- IVB -->
-            <TextBlock Text="IVB" Style="{StaticResource SectionTitleText}" FontSize="16" Margin="0,0,0,10" />
-            <Border Style="{StaticResource CardBorder}" Padding="16,12">
+            <TextBlock Text="IVB" Style="{StaticResource SectionTitleText}" FontSize="19" Margin="0,0,0,12" />
+            <Border Style="{StaticResource CardBorder}" Padding="20,16">
                 <ContentControl Content="{Binding IvbHeute}">
                     <ContentControl.Resources>
                         <DataTemplate DataType="{x:Type vm:IvbDayRowViewModel}">

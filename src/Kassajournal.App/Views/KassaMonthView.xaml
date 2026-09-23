@@ -24,7 +24,7 @@
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="Anfangssaldo" Style="{StaticResource SectionTitleText}" />
                     <Grid>
-                        <TextBlock Text="{Binding Anfangssaldo, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="SemiBold"
+                        <TextBlock Text="{Binding Anfangssaldo, StringFormat={}{0:N2} €}" FontSize="22" FontWeight="SemiBold"
                                    Cursor="Hand" ToolTip="Klicken zum Bearbeiten"
                                    MouseLeftButtonUp="Anfangssaldo_Click"
                                    Visibility="{Binding IsEditingAnfangssaldo, Converter={StaticResource InverseBoolToVisibility}}" />
@@ -36,15 +36,15 @@
                 </StackPanel>
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="Summe Soll" Style="{StaticResource SectionTitleText}" />
-                    <TextBlock Text="{Binding SummeSoll, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource BrushSoll}" />
+                    <TextBlock Text="{Binding SummeSoll, StringFormat={}{0:N2} €}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource BrushSoll}" />
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="Summe Haben" Style="{StaticResource SectionTitleText}" />
-                    <TextBlock Text="{Binding SummeHaben, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource BrushHaben}" />
+                    <TextBlock Text="{Binding SummeHaben, StringFormat={}{0:N2} €}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource BrushHaben}" />
                 </StackPanel>
                 <StackPanel Grid.Column="3">
                     <TextBlock Text="Saldo" Style="{StaticResource SectionTitleText}" />
-                    <TextBlock Text="{Binding Saldo, StringFormat={}{0:N2} €}" FontSize="18" FontWeight="Bold" />
+                    <TextBlock Text="{Binding Saldo, StringFormat={}{0:N2} €}" FontSize="22" FontWeight="Bold" />
                 </StackPanel>
 
                 <Grid Grid.Column="4" VerticalAlignment="Center">
@@ -83,7 +83,7 @@
                 </ItemsControl>
 
                 <TextBlock Text="Noch keine Buchungen in diesem Monat." Foreground="{StaticResource BrushTextSecondary}"
-                           Margin="4,10,0,0">
+                           FontSize="15" Margin="4,10,0,0">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />

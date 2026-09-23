@@ -21,4 +21,22 @@ public partial class IvbDayRowView : UserControl
             }
         }
     }
+
+    /// <summary>Siehe DayEntryView.AmountTextBox_GotFocus - gleiches Verhalten für das IVB-Feld.</summary>
+    private void AmountTextBox_GotFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is not TextBox { DataContext: IvbDayRowViewModel row } textBox)
+        {
+            return;
+        }
+
+        if (row.Amount == 0m)
+        {
+            textBox.Clear();
+        }
+        else
+        {
+            textBox.SelectAll();
+        }
+    }
 }
