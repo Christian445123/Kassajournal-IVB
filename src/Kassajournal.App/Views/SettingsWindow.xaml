@@ -15,7 +15,12 @@
             <TextBlock Text="Kassajournal und IVB verwenden zwei komplett getrennte Datenbanken. Beide Verbindungen laufen verschlüsselt (TLS/SSL); die Zugangsdaten werden nur lokal, verschlüsselt an dieses Benutzerkonto gebunden, gespeichert - und bleiben bei jedem Programm-Update automatisch erhalten, da sie unabhängig vom Installationsordner liegen."
                        Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" Margin="0,0,0,20" />
 
-            <views:DatabaseConnectionSettingsView DataContext="{Binding Kassajournal}" Margin="0,0,0,20" />
+            <views:DatabaseConnectionSettingsView DataContext="{Binding Kassajournal}" Margin="0,0,0,12" />
+
+            <Button Content="↓ Gleiche Zugangsdaten wie Kassajournal für IVB übernehmen (nur Datenbankname bleibt ivb_db)"
+                    Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" FontSize="12" Padding="12,8" Margin="0,0,0,12"
+                    Command="{Binding Ivb.UebernehmenVonCommand}" CommandParameter="{Binding Kassajournal}" />
+
             <views:DatabaseConnectionSettingsView DataContext="{Binding Ivb}" Margin="0,0,0,28" />
 
             <!-- Programm-Updates -->

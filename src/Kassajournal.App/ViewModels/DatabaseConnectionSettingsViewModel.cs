@@ -107,6 +107,24 @@ public partial class DatabaseConnectionSettingsViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Übernimmt Server/Typ/Zugangsdaten (Host, Port, Engine, Benutzername, Passwort,
+    /// Verschlüsselung) von einem anderen Bereich - NICHT den Datenbanknamen, der bleibt
+    /// bereichsspezifisch (kassajournal_db bzw. ivb_db). Praktisch, wenn beide Datenbanken auf
+    /// demselben Server mit denselben Zugangsdaten liegen - dann muss man es nur 1x eintippen.
+    /// </summary>
+    [RelayCommand]
+    private void UebernehmenVon(DatabaseConnectionSettingsViewModel quelle)
+    {
+        Engine = quelle.Engine;
+        Host = quelle.Host;
+        Port = quelle.Port;
+        Username = quelle.Username;
+        Password = quelle.Password;
+        RequireEncryption = quelle.RequireEncryption;
+        TestStatusMessage = $"Zugangsdaten von {quelle.Titel} übernommen - bitte prüfen und speichern.";
+    }
+
     [RelayCommand]
     private void Speichern() => Save();
 
