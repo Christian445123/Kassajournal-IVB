@@ -9,7 +9,15 @@
         FontFamily="{StaticResource AppFont}"
         WindowStartupLocation="CenterScreen">
 
-    <Grid>
+    <!--
+        Viewbox skaliert die komplette Oberfläche (Schrift, Eingabefelder, Abstände) gleichmäßig
+        mit der tatsächlichen Fenstergröße: der innere Grid hat eine feste "Entwurfsgröße"
+        (1460x920, die normale Fenstergröße), und der Viewbox vergrößert/verkleinert das Ganze
+        proportional - im maximierten/Vollbild-Zustand also spürbar größer, in einem kleineren
+        Fenster entsprechend kleiner. Läuft rein über WPF-Vektor-Rendering, Schrift bleibt scharf.
+    -->
+    <Viewbox Stretch="Uniform">
+    <Grid Width="1460" Height="920">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -81,4 +89,5 @@
             <views:MonatsuebersichtView Visibility="{Binding IstMonatsuebersichtAktiv, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
     </Grid>
+    </Viewbox>
 </Window>
