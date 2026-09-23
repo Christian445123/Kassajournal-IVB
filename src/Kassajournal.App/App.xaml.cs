@@ -34,6 +34,7 @@ public partial class App : Application
         try
         {
             var localDb = LocalDbContextFactory.Create();
+            PruefeUndBieteDatenwiederherstellungAn(localDb);
 
             IKassaRepository kassaRepository = new LocalKassaRepository(localDb);
             IIvbRepository ivbRepository = new LocalIvbRepository(localDb);
@@ -80,6 +81,47 @@ public partial class App : Application
             ShowFatalError("Kassajournal & IVB konnte nicht gestartet werden.", ex);
             Shutdown(1);
         }
+    }
+
+    /// <summary>
+    /// Prüft, ob durch einen früheren Zwischenfall (siehe LocalDbContextFactory) eine ältere lokale
+    /// Datenbank beiseitegeschoben wurde, und bietet an, fehlende Buchungen daraus in die aktuell
+    /// aktive Datenbank zu übernehmen - nichts wird dabei überschrieben.
+    /// </summary>
+    private static void PruefeUndBieteDatenwiederherstellungAn(LocalDbContext localDb)
+    {
+        var sicherungen = LocalDatabaseRecovery.FindeSicherungen();
+        if (sicherungen.Count == 0)
+        {
+            return;
+        }
+
+        var neueste = sicherungen[0];
+        var antwort = MessageBox.Show(
+            $"Es wurde eine ältere, beiseitegeschobene lokale Datenbank gefunden (vom " +
+            $"{neueste.Zeitpunkt:dd.MM.yyyy HH:mm} Uhr).\n\n" +
+            "Das kann passieren, wenn die App bei einem früheren Start ein Problem beim Öffnen " +
+            "der Datenbank hatte. Sollen fehlende Buchungen daraus jetzt automatisch übernommen " +
+            "werden? Nichts Vorhandenes wird dabei überschrieben.",
+            "Möglicherweise verlorene Daten gefunden",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (antwort != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var (kassaCount, ivbCount) = LocalDatabaseRecovery.WiederherstellenAsync(neueste, localDb).GetAwaiter().GetResult();
+
+        MessageBox.Show(
+            kassaCount + ivbCount > 0
+                ? $"{kassaCount} Kassajournal- und {ivbCount} IVB-Buchungen wurden wiederhergestellt."
+                : "Aus der Sicherung konnten keine zusätzlichen Buchungen übernommen werden (z. B. weil " +
+                  "bereits alles vorhanden war oder die Datei nicht mehr lesbar ist).",
+            "Wiederherstellung abgeschlossen",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
